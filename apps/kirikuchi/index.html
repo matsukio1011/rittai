@@ -1862,7 +1862,7 @@
         ctx.setLineDash([]);
       }
 
-      // 4b. 作図モード：ユーザーが引いた線分のうち裏側の面にある部分（隠れ線）と立方体外の補助線部分を描画
+      // 4b. 作図モード：ユーザーが引いた線分のうち立方体外にはみ出している補助線部分を破線で描画
       if (isDrawMode) {
         for (const seg of state.drawState.drawnSegments) {
           const isHoveredSeg = state.hoverDrawnSegment && state.hoverDrawnSegment.id === seg.id;
@@ -1908,22 +1908,6 @@
               ctx.beginPath();
               ctx.moveTo(pLeave.x, pLeave.y);
               ctx.lineTo(pEnd.x, pEnd.y);
-              ctx.stroke();
-              ctx.restore();
-            }
-
-            // 立方体内部（切り口線分）が隠れ面にある場合はここで破線描画
-            const hidden = isSectionSegmentHidden({ onFaces: clipped.onFaces }, faceVis);
-            if (hidden) {
-              const pA2d = projectPoint(clipped.cA, W, H);
-              const pB2d = projectPoint(clipped.cB, W, H);
-              ctx.save();
-              ctx.setLineDash([6, 5]);
-              ctx.lineWidth = isHoveredSeg ? 4.2 : 2.7;
-              ctx.strokeStyle = isHoveredSeg ? accentColor : sectionStrokeColor;
-              ctx.beginPath();
-              ctx.moveTo(pA2d.x, pA2d.y);
-              ctx.lineTo(pB2d.x, pB2d.y);
               ctx.stroke();
               ctx.restore();
             }
@@ -1990,14 +1974,12 @@
         }
       }
 
-      // 6b. 作図モード：ユーザーが引いた線分のうち表側の面にある部分（実線）と、ラバーバンド・交点ドットを描画
+      // 6b. 作図モード：ユーザーが引いた線分のうち立方体の面上および内部にある部分をすべて実線で描画し、ラバーバンド・交点ドットも描画
       if (isDrawMode && drawGeo) {
         for (const seg of state.drawState.drawnSegments) {
           const isHoveredSeg = state.hoverDrawnSegment && state.hoverDrawnSegment.id === seg.id;
           const clipped = clipSegmentToCube(seg.pA, seg.pB);
           if (!clipped) continue;
-          const hidden = isSectionSegmentHidden({ onFaces: clipped.onFaces }, faceVis);
-          if (hidden) continue;
 
           const pA2d = projectPoint(clipped.cA, W, H);
           const pB2d = projectPoint(clipped.cB, W, H);
