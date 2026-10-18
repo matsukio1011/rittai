@@ -1,0 +1,2216 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>立方体の切断シミュレーター（3点指定・切り口表示）</title>
+  <style>
+    :root {
+      --bg-primary: #f4f6f9;
+      --bg-panel: #ffffff;
+      --bg-card: #f8fafc;
+      --bg-hover: #edf2f7;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --border-color: #e2e8f0;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --accent-soft: rgba(59, 130, 246, 0.12);
+      --point-p: #ef4444;
+      --point-q: #10b981;
+      --point-r: #f59e0b;
+      --section-stroke: #e11d48;
+      --section-fill: rgba(244, 63, 94, 0.32);
+      --cube-edge: #334155;
+      --cube-hidden: #94a3b8;
+      --cube-face: rgba(203, 213, 225, 0.16);
+      --shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+      --canvas-bg: radial-gradient(circle at 50% 45%, #ffffff 0%, #eef2f6 100%);
+    }
+
+    [data-theme="dark"] {
+      --bg-primary: #0f172a;
+      --bg-panel: #1e293b;
+      --bg-card: #0f172a;
+      --bg-hover: #334155;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --border-color: #334155;
+      --accent: #60a5fa;
+      --accent-hover: #3b82f6;
+      --accent-soft: rgba(96, 165, 250, 0.16);
+      --point-p: #f87171;
+      --point-q: #34d399;
+      --point-r: #fbbf24;
+      --section-stroke: #fb7185;
+      --section-fill: rgba(251, 113, 133, 0.36);
+      --cube-edge: #cbd5e1;
+      --cube-hidden: #64748b;
+      --cube-face: rgba(148, 163, 184, 0.08);
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+      --canvas-bg: radial-gradient(circle at 50% 45%, #1e293b 0%, #090d16 100%);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      font-family: "Segoe UI", "Hiragino Kaku Gothic ProN", "BIZ UDPGothic", "Meiryo", sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .app-shell {
+      display: flex;
+      flex-direction: column;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Header */
+    .header {
+      height: 54px;
+      flex-shrink: 0;
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      box-shadow: var(--shadow);
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--accent-soft);
+      display: grid;
+      place-items: center;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .brand-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    .brand-sub {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      margin-left: 4px;
+    }
+
+    /* Mode Switcher */
+    .mode-switcher {
+      display: flex;
+      background: var(--bg-card);
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      gap: 4px;
+    }
+
+    .mode-btn {
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 6px 16px;
+      border-radius: 7px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .mode-btn:hover {
+      color: var(--text-primary);
+    }
+
+    .mode-btn.active {
+      background: var(--accent);
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(59, 130, 246, 0.35);
+    }
+
+    /* Header Right Controls */
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      height: 36px;
+      padding: 0 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      color: var(--text-primary);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .icon-btn:hover {
+      background: var(--bg-hover);
+      border-color: var(--accent);
+    }
+
+    .icon-btn svg {
+      width: 16px;
+      height: 16px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* Main Workspace */
+    .workspace {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 370px;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    /* Viewport */
+    .viewport-area {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: var(--canvas-bg);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #mainCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: grab;
+    }
+
+    #mainCanvas.mode-mitorizu {
+      cursor: default;
+    }
+
+    #mainCanvas.hovering-handle {
+      cursor: pointer !important;
+    }
+
+    #mainCanvas.dragging-handle {
+      cursor: grabbing !important;
+    }
+
+    /* Floating Overlays inside Canvas */
+    .viewport-top-left {
+      position: absolute;
+      top: 14px;
+      left: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .badge-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .shape-badge {
+      pointer-events: auto;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow);
+      padding: 8px 14px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .shape-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--section-stroke);
+      box-shadow: 0 0 0 4px var(--section-fill);
+    }
+
+    .shape-name {
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .shape-sub {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      border-left: 1px solid var(--border-color);
+      padding-left: 10px;
+    }
+
+    .hint-pill {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      padding: 5px 11px;
+      border-radius: 8px;
+      font-size: 0.76rem;
+      box-shadow: var(--shadow);
+      width: fit-content;
+    }
+
+    .viewport-bottom-left {
+      position: absolute;
+      bottom: 14px;
+      left: 16px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .toggle-chip {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 6px 11px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: var(--shadow);
+      transition: all 0.15s ease;
+    }
+
+    .toggle-chip:hover {
+      border-color: var(--accent);
+    }
+
+    .toggle-chip.active {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* True Shape Mini Card (bottom-right of canvas) */
+    .true-shape-card {
+      position: absolute;
+      bottom: 14px;
+      right: 16px;
+      width: 176px;
+      height: 176px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .true-shape-header {
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      padding: 6px 10px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #trueShapeCanvas {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Right Control Panel */
+    .side-panel {
+      background: var(--bg-panel);
+      border-left: 1px solid var(--border-color);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .panel-section {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .section-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    /* Point Selection Tabs */
+    .point-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .point-card {
+      background: var(--bg-card);
+      border: 1.5px solid var(--border-color);
+      border-radius: 9px;
+      padding: 7px 10px;
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+
+    .point-card.active-target {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-soft);
+    }
+
+    .point-row-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .point-label-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .point-pill {
+      width: 21px;
+      height: 21px;
+      border-radius: 6px;
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.76rem;
+      display: grid;
+      place-items: center;
+    }
+
+    .point-pill.p { background: var(--point-p); }
+    .point-pill.q { background: var(--point-q); }
+    .point-pill.r { background: var(--point-r); }
+
+    .point-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .edge-select {
+      background: var(--bg-panel);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 3px 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .edge-select:focus {
+      border-color: var(--accent);
+    }
+
+    .ratio-badge {
+      font-size: 0.73rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      min-width: 56px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .quick-snap-btns {
+      display: flex;
+      gap: 3px;
+    }
+
+    .snap-btn {
+      border: 1px solid var(--border-color);
+      background: var(--bg-panel);
+      color: var(--text-secondary);
+      border-radius: 5px;
+      font-size: 0.69rem;
+      font-weight: 600;
+      padding: 2px 5px;
+      cursor: pointer;
+    }
+
+    .snap-btn:hover {
+      border-color: var(--accent);
+      color: var(--text-primary);
+    }
+
+    .snap-btn.active-snap {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Presets Grid */
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+    }
+
+    .preset-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      border-radius: 8px;
+      padding: 7px 9px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.15s ease;
+    }
+
+    .preset-btn:hover {
+      background: var(--bg-hover);
+      border-color: var(--accent);
+    }
+
+    .preset-tag {
+      font-size: 0.68rem;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    /* Info Box */
+    .info-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+
+    .stat-item {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      border-radius: 7px;
+      padding: 6px 8px;
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 0.68rem;
+      color: var(--text-secondary);
+      margin-bottom: 2px;
+    }
+
+    .stat-value {
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .step-guide {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      line-height: 1.45;
+      border-top: 1px solid var(--border-color);
+      padding-top: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Top Bar -->
+    <header class="header">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+            <line x1="12" y1="22.08" x2="12" y2="12"/>
+          </svg>
+        </div>
+        <div>
+          <span class="brand-title">立方体の切り口シミュレーター</span>
+          <span class="brand-sub">辺上の3点指定・断面可視化</span>
+        </div>
+      </div>
+
+      <!-- Mode Switcher: 3D vs 見取り図 -->
+      <div class="mode-switcher" role="tablist" aria-label="表示モード切替">
+        <button id="mode3dBtn" class="mode-btn active" type="button">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/>
+          </svg>
+          3D表示（自由回転）
+        </button>
+        <button id="modeMitorizuBtn" class="mode-btn" type="button">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <rect x="3" y="7" width="13" height="13" rx="1"/>
+            <path d="M8 7l5-4h8v13l-5 4"/>
+            <line x1="16" y1="7" x2="21" y2="3"/>
+          </svg>
+          見取り図表示（斜投影）
+        </button>
+      </div>
+
+      <!-- Right Utility Buttons -->
+      <div class="header-actions">
+        <button id="resetCameraBtn" class="icon-btn" type="button" title="視点を初期位置に戻す">
+          <svg viewBox="0 0 24 24">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+          </svg>
+          <span>視点リセット</span>
+        </button>
+        <button id="themeToggleBtn" class="icon-btn" type="button" title="ダークモード切り替え">
+          <svg id="themeIconSun" viewBox="0 0 24 24" style="display:none;">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+          <svg id="themeIconMoon" viewBox="0 0 24 24">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+          <span id="themeBtnLabel">ダーク</span>
+        </button>
+        <button id="fullscreenBtn" class="icon-btn" type="button" title="全画面表示切り替え">
+          <svg id="fsExpandIcon" viewBox="0 0 24 24">
+            <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
+            <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+          </svg>
+          <svg id="fsCompressIcon" viewBox="0 0 24 24" style="display:none;">
+            <polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/>
+            <line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/>
+          </svg>
+          <span id="fsBtnLabel">全画面</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="workspace">
+      <!-- Left Viewport -->
+      <section class="viewport-area">
+        <canvas id="mainCanvas"></canvas>
+
+        <!-- Top-Left Badge & Operation Hint -->
+        <div class="viewport-top-left">
+          <div class="badge-row">
+            <div id="topShapeBadge" class="shape-badge">
+              <span class="shape-dot"></span>
+              <span id="shapeNameBadge" class="shape-name">正三角形</span>
+              <span id="shapeDetailBadge" class="shape-sub">3頂点・3辺</span>
+            </div>
+
+            <!-- 見取り図モード時の視点切り替えボタン群 -->
+            <div id="mitorizuViewBar" class="shape-badge" style="display:none; padding: 5px 10px; gap: 5px; flex-wrap: wrap;">
+              <span style="font-size:0.75rem; font-weight:700; color:var(--text-secondary); margin-right:2px;">正面の面:</span>
+              <button class="toggle-chip mitorizu-rot-btn active" data-rot="0" type="button" style="padding:4px 8px; box-shadow:none;">正面 (BCGF)</button>
+              <button class="toggle-chip mitorizu-rot-btn" data-rot="1" type="button" style="padding:4px 8px; box-shadow:none;">右面 (CDHG)</button>
+              <button class="toggle-chip mitorizu-rot-btn" data-rot="2" type="button" style="padding:4px 8px; box-shadow:none;">背面 (DAEH)</button>
+              <button class="toggle-chip mitorizu-rot-btn" data-rot="3" type="button" style="padding:4px 8px; box-shadow:none;">左面 (ABFE)</button>
+              <span style="border-left:1px solid var(--border-color); height:18px; margin:0 2px;"></span>
+              <span style="font-size:0.75rem; font-weight:700; color:var(--text-secondary); margin-right:2px;">奥行き:</span>
+              <button class="toggle-chip mitorizu-vp-btn active" data-vp="0" type="button" style="padding:4px 8px; box-shadow:none;">右上奥 (標準)</button>
+              <button class="toggle-chip mitorizu-vp-btn" data-vp="1" type="button" style="padding:4px 8px; box-shadow:none;">左上奥</button>
+            </div>
+
+            <!-- 左上パネルの表示/非表示切り替えボタン -->
+            <button id="toggleTopInfoBtn" class="shape-badge" type="button" title="上部の情報パネル・ガイドを非表示にする" style="padding: 6px 10px; gap: 5px; cursor: pointer; font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">
+              <span id="toggleTopInfoLabel">▲ パネルを隠す</span>
+            </button>
+          </div>
+          <div id="modeHintText" class="hint-pill">
+            💡 点P・Q・Rをドラッグで移動 ／ 辺（立方体・切り口）をクリックで延長線の表示・非表示 ／ 背景ドラッグで3D回転
+          </div>
+        </div>
+
+        <!-- Bottom-Left Display Toggles -->
+        <div class="viewport-bottom-left">
+          <button id="toggleVerticesBtn" class="toggle-chip active" type="button">頂点ラベル (A〜H)</button>
+          <button id="toggleSectionFillBtn" class="toggle-chip active" type="button">切り口の塗りつぶし</button>
+          <button id="toggleIntersectionsBtn" class="toggle-chip active" type="button">全交点の表示</button>
+          <button id="clearExtensionsBtn" class="toggle-chip" type="button" style="display:none;">延長線をすべて消去</button>
+        </div>
+
+        <!-- Bottom-Right True 2D Cross-Section Preview -->
+        <div class="true-shape-card">
+          <div class="true-shape-header">
+            <span>切り口の実形（正面図）</span>
+            <span id="trueShapeVerticesCount">3角形</span>
+          </div>
+          <canvas id="trueShapeCanvas" width="176" height="146"></canvas>
+        </div>
+      </section>
+
+      <!-- Right Side Control Panel -->
+      <aside class="side-panel">
+        <!-- 3 Points Controls -->
+        <div class="panel-section">
+          <div class="section-header">
+            <span class="section-title">辺上の3点指定（図上でドラッグ可）</span>
+          </div>
+          <div id="pointCardsContainer" class="point-cards"></div>
+        </div>
+
+        <!-- Presets -->
+        <div class="panel-section">
+          <div class="section-header">
+            <span class="section-title">代表的な切り口プリセット</span>
+          </div>
+          <div class="preset-grid">
+            <button class="preset-btn" data-preset="equilateral">
+              <span>正三角形</span>
+              <span class="preset-tag">3角形</span>
+            </button>
+            <button class="preset-btn" data-preset="isosceles">
+              <span>二等辺三角形</span>
+              <span class="preset-tag">3角形</span>
+            </button>
+            <button class="preset-btn" data-preset="square">
+              <span>正方形（水平）</span>
+              <span class="preset-tag">4角形</span>
+            </button>
+            <button class="preset-btn" data-preset="rectangle">
+              <span>長方形（対角）</span>
+              <span class="preset-tag">4角形</span>
+            </button>
+            <button class="preset-btn" data-preset="trapezoid">
+              <span>等脚台形</span>
+              <span class="preset-tag">4角形</span>
+            </button>
+            <button class="preset-btn" data-preset="rhombus">
+              <span>ひし形</span>
+              <span class="preset-tag">4角形</span>
+            </button>
+            <button class="preset-btn" data-preset="pentagon">
+              <span>五角形</span>
+              <span class="preset-tag">5角形</span>
+            </button>
+            <button class="preset-btn" data-preset="hexagon">
+              <span>正六角形</span>
+              <span class="preset-tag">6角形</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Section Summary & Properties -->
+        <div class="panel-section">
+          <div class="section-header">
+            <span class="section-title">切り口のデータ（1辺 = 10cm 換算）</span>
+          </div>
+          <div class="info-card">
+            <div class="stats-grid">
+              <div class="stat-item">
+                <div class="stat-label">切り口の形状</div>
+                <div id="statShapeName" class="stat-value">正三角形</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-label">断面積</div>
+                <div id="statArea" class="stat-value">21.65 cm²</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-label">周の長さ</div>
+                <div id="statPerimeter" class="stat-value">21.21 cm</div>
+              </div>
+            </div>
+            <div id="explanationText" class="step-guide">
+              同じ頂点Bに集まる3辺の中点を通る平面で切断すると、3辺の長さがすべて等しい正三角形になります。辺をクリックすると延長線を表示できます。
+            </div>
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    /**
+     * 立方体の頂点定義 (1辺の長さ 1)
+     * 上面 ABCD (y = 1):
+     *   A: 左奥 (0, 1, 0), B: 左手前 (0, 1, 1), C: 右手前 (1, 1, 1), D: 右奥 (1, 1, 0)
+     * 底面 EFGH (y = 0):
+     *   E: 左奥 (0, 0, 0), F: 左手前 (0, 0, 1), G: 右手前 (1, 0, 1), H: 右奥 (1, 0, 0)
+     */
+    const VERTICES = {
+      A: { id: 'A', x: 0, y: 1, z: 0 },
+      B: { id: 'B', x: 0, y: 1, z: 1 },
+      C: { id: 'C', x: 1, y: 1, z: 1 },
+      D: { id: 'D', x: 1, y: 1, z: 0 },
+      E: { id: 'E', x: 0, y: 0, z: 0 },
+      F: { id: 'F', x: 0, y: 0, z: 1 },
+      G: { id: 'G', x: 1, y: 0, z: 1 },
+      H: { id: 'H', x: 1, y: 0, z: 0 },
+    };
+
+    const EDGES = [
+      // 上面
+      { id: 'AB', v1: 'A', v2: 'B', group: '上面' },
+      { id: 'BC', v1: 'B', v2: 'C', group: '上面' },
+      { id: 'CD', v1: 'C', v2: 'D', group: '上面' },
+      { id: 'DA', v1: 'D', v2: 'A', group: '上面' },
+      // 縦の辺
+      { id: 'AE', v1: 'A', v2: 'E', group: '側辺' },
+      { id: 'BF', v1: 'B', v2: 'F', group: '側辺' },
+      { id: 'CG', v1: 'C', v2: 'G', group: '側辺' },
+      { id: 'DH', v1: 'D', v2: 'H', group: '側辺' },
+      // 底面
+      { id: 'EF', v1: 'E', v2: 'F', group: '底面' },
+      { id: 'FG', v1: 'F', v2: 'G', group: '底面' },
+      { id: 'GH', v1: 'G', v2: 'H', group: '底面' },
+      { id: 'HE', v1: 'H', v2: 'E', group: '底面' },
+    ];
+
+    // 6つの面（外向き法線と頂点ループ）
+    const FACES = [
+      { id: 'TOP',    verts: ['A', 'B', 'C', 'D'], normal: { x: 0, y: 1, z: 0 },  edges: ['AB', 'BC', 'CD', 'DA'] },
+      { id: 'BOTTOM', verts: ['E', 'H', 'G', 'F'], normal: { x: 0, y: -1, z: 0 }, edges: ['EF', 'FG', 'GH', 'HE'] },
+      { id: 'FRONT',  verts: ['B', 'F', 'G', 'C'], normal: { x: 0, y: 0, z: 1 },  edges: ['BC', 'CG', 'FG', 'BF'] },
+      { id: 'BACK',   verts: ['A', 'D', 'H', 'E'], normal: { x: 0, y: 0, z: -1 }, edges: ['DA', 'DH', 'HE', 'AE'] },
+      { id: 'LEFT',   verts: ['A', 'E', 'F', 'B'], normal: { x: -1, y: 0, z: 0 }, edges: ['AB', 'BF', 'EF', 'AE'] },
+      { id: 'RIGHT',  verts: ['D', 'C', 'G', 'H'], normal: { x: 1, y: 0, z: 0 },  edges: ['CD', 'CG', 'GH', 'DH'] },
+    ];
+
+    // 見取り図の斜投影プリセット（常に上面ABCDが見える標準的な斜め上からの視点）
+    const MITORIZU_VIEWPOINTS = [
+      { id: 0, label: '右上奥 (標準)', dirX: 1,  dirY: 1 },
+      { id: 1, label: '左上奥',       dirX: -1, dirY: 1 },
+    ];
+
+    // アプリの状態
+    const state = {
+      viewMode: '3d', // '3d' | 'mitorizu'
+      activePointIndex: 0, // 0: P, 1: Q, 2: R
+      points: [
+        { name: 'P', colorKey: 'p', edgeId: 'AB', t: 0.5 },
+        { name: 'Q', colorKey: 'q', edgeId: 'BC', t: 0.5 },
+        { name: 'R', colorKey: 'r', edgeId: 'BF', t: 0.5 },
+      ],
+      camera: {
+        yaw: -0.58,
+        pitch: 0.44,
+      },
+      mitorizu: {
+        vpIndex: 0,    // 0: 右上奥 (標準), 1: 左上奥
+        rotQuarter: 0, // 0: 正面(BCGF), 1: 右面(CDHG), 2: 背面(DAEH), 3: 左面(ABFE)
+      },
+      options: {
+        showVertices: true,
+        showSectionFill: true,
+        showIntersections: true,
+      },
+      extendedCubeEdges: new Set(),  // クリックで選択された立方体の辺ID ('AB', 'EF', etc.)
+      extendedSectionFaces: new Set(), // クリックで選択された切り口の辺 (faceId: 'TOP', 'FRONT', etc.)
+      dragging: {
+        type: null, // 'point' | 'camera'
+        pointIndex: -1,
+        lastX: 0,
+        lastY: 0,
+      },
+      hoverPointIndex: -1,
+      hoverEdge: null, // { type: 'cube' | 'section', id: string }
+    };
+
+    const PRESETS = {
+      equilateral: {
+        points: [
+          { edgeId: 'AB', t: 0.5 },
+          { edgeId: 'BC', t: 0.5 },
+          { edgeId: 'BF', t: 0.5 },
+        ],
+        desc: '1つの頂点Bに集まる3辺の中点（AB・BC・BFの中点）を通る平面で切断すると、3辺の長さが等しい「正三角形」になります。'
+      },
+      isosceles: {
+        points: [
+          { edgeId: 'AB', t: 0.5 },
+          { edgeId: 'BC', t: 0.5 },
+          { edgeId: 'BF', t: 1.0 },
+        ],
+        desc: '辺AB・BCの中点と頂点Fを通る平面で切断すると、2辺の長さが等しい「二等辺三角形」になります。'
+      },
+      square: {
+        points: [
+          { edgeId: 'AE', t: 0.5 },
+          { edgeId: 'BF', t: 0.5 },
+          { edgeId: 'CG', t: 0.5 },
+        ],
+        desc: '底面に平行な平面（縦の辺AE・BF・CGの中点）で切断すると、切り口は元の面と合同な「正方形」になります。'
+      },
+      rectangle: {
+        points: [
+          { edgeId: 'AB', t: 0.0 },
+          { edgeId: 'CD', t: 0.0 },
+          { edgeId: 'FG', t: 1.0 },
+        ],
+        desc: '向かい合う辺（頂点A・C・G）を通る対角面で切断すると、縦と横の長さが 1 : √2 の「長方形」になります。'
+      },
+      trapezoid: {
+        points: [
+          { edgeId: 'AB', t: 0.5 },
+          { edgeId: 'BC', t: 0.5 },
+          { edgeId: 'FG', t: 1.0 },
+        ],
+        desc: '辺AB・BCの中点と頂点G（および頂点E）を通る平面で切断すると、PQ // EG かつ脚の長さが等しい「等脚台形」になります。'
+      },
+      rhombus: {
+        points: [
+          { edgeId: 'AE', t: 0.5 },
+          { edgeId: 'BF', t: 1.0 },
+          { edgeId: 'CG', t: 0.5 },
+        ],
+        desc: '辺AE・CGの中点と頂点F（および頂点D）を通る平面で切断すると、4辺の長さがすべて等しい「ひし形」になります。'
+      },
+      pentagon: {
+        points: [
+          { edgeId: 'AB', t: 0.5 },
+          { edgeId: 'BC', t: 0.5 },
+          { edgeId: 'DH', t: 1.0 },
+        ],
+        desc: '辺AB・BCの中点と頂点Hを通る平面で切断すると、5つの面（上面・左面・正面・右面・奥面）を横切る左右対称な「五角形」になります。'
+      },
+      hexagon: {
+        points: [
+          { edgeId: 'AB', t: 0.5 },
+          { edgeId: 'BC', t: 0.5 },
+          { edgeId: 'HE', t: 0.5 },
+        ],
+        desc: '互いに隣り合わない辺の中点（AB・BC・CG・GH・HE・AEの6辺の中点）を通る平面で切断すると、「正六角形」が現れます。'
+      }
+    };
+
+    // DOM Elements
+    const mainCanvas = document.getElementById('mainCanvas');
+    const ctx = mainCanvas.getContext('2d');
+    const trueShapeCanvas = document.getElementById('trueShapeCanvas');
+    const tsCtx = trueShapeCanvas.getContext('2d');
+    const pointCardsContainer = document.getElementById('pointCardsContainer');
+    const clearExtensionsBtn = document.getElementById('clearExtensionsBtn');
+    const mitorizuViewBar = document.getElementById('mitorizuViewBar');
+
+    // Vector Math Helpers
+    function vecSub(a, b) { return { x: a.x - b.x, y: a.y - b.y, z: a.z - b.z }; }
+    function vecAdd(a, b) { return { x: a.x + b.x, y: a.y + b.y, z: a.z + b.z }; }
+    function vecScale(a, s) { return { x: a.x * s, y: a.y * s, z: a.z * s }; }
+    function vecDot(a, b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
+    function vecCross(a, b) {
+      return {
+        x: a.y * b.z - a.z * b.y,
+        y: a.z * b.x - a.x * b.z,
+        z: a.x * b.y - a.y * b.x,
+      };
+    }
+    function vecLen(a) { return Math.hypot(a.x, a.y, a.z); }
+    function vecNorm(a) {
+      const len = vecLen(a);
+      return len < 1e-9 ? { x: 0, y: 0, z: 0 } : { x: a.x / len, y: a.y / len, z: a.z / len };
+    }
+    function vecDist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z); }
+
+    function getEdgeById(edgeId) {
+      return EDGES.find(e => e.id === edgeId);
+    }
+
+    function getPointOnEdge3D(edgeId, t) {
+      const edge = getEdgeById(edgeId);
+      const v1 = VERTICES[edge.v1];
+      const v2 = VERTICES[edge.v2];
+      return {
+        x: v1.x + (v2.x - v1.x) * t,
+        y: v1.y + (v2.y - v1.y) * t,
+        z: v1.z + (v2.z - v1.z) * t,
+      };
+    }
+
+    function formatEdgePosition(edgeId, t) {
+      const edge = getEdgeById(edgeId);
+      if (Math.abs(t) < 0.01) return `頂点 ${edge.v1}`;
+      if (Math.abs(t - 1) < 0.01) return `頂点 ${edge.v2}`;
+      if (Math.abs(t - 0.5) < 0.015) return `中点 (1:1)`;
+      if (Math.abs(t - 0.25) < 0.015) return `1 : 3`;
+      if (Math.abs(t - 0.75) < 0.015) return `3 : 1`;
+      if (Math.abs(t - 1/3) < 0.02) return `1 : 2`;
+      if (Math.abs(t - 2/3) < 0.02) return `2 : 1`;
+      return `${Math.round(t * 100)}%`;
+    }
+
+    // 3点 P, Q, R から平面と立方体の切り口多角形を計算
+    function computeCrossSection() {
+      const p3d = state.points.map(pt => ({
+        ...getPointOnEdge3D(pt.edgeId, pt.t),
+        name: pt.name,
+        colorKey: pt.colorKey,
+        edgeId: pt.edgeId,
+        t: pt.t
+      }));
+
+      const v1 = vecSub(p3d[1], p3d[0]);
+      const v2 = vecSub(p3d[2], p3d[0]);
+      const rawNormal = vecCross(v1, v2);
+      const normalLen = vecLen(rawNormal);
+
+      if (normalLen < 1e-6) {
+        return {
+          valid: false,
+          reason: '3点が一直線上に並んでいるため、平面が1つに定まりません。',
+          userPoints: p3d,
+          polygon: [],
+          segments: [],
+        };
+      }
+
+      const normal = vecNorm(rawNormal);
+      const d = vecDot(normal, p3d[0]);
+
+      const rawIntersections = [];
+      for (const edge of EDGES) {
+        const A = VERTICES[edge.v1];
+        const B = VERTICES[edge.v2];
+        const dA = vecDot(normal, A) - d;
+        const dB = vecDot(normal, B) - d;
+
+        if (Math.abs(dA) < 1e-6 && Math.abs(dB) < 1e-6) {
+          rawIntersections.push({ x: A.x, y: A.y, z: A.z, edgeId: edge.id });
+          rawIntersections.push({ x: B.x, y: B.y, z: B.z, edgeId: edge.id });
+        } else if (Math.abs(dA) < 1e-6) {
+          rawIntersections.push({ x: A.x, y: A.y, z: A.z, edgeId: edge.id });
+        } else if (Math.abs(dB) < 1e-6) {
+          rawIntersections.push({ x: B.x, y: B.y, z: B.z, edgeId: edge.id });
+        } else if ((dA < 0 && dB > 0) || (dA > 0 && dB < 0)) {
+          const t = dA / (dA - dB);
+          if (t >= -1e-6 && t <= 1 + 1e-6) {
+            const clampedT = Math.max(0, Math.min(1, t));
+            rawIntersections.push({
+              x: A.x + (B.x - A.x) * clampedT,
+              y: A.y + (B.y - A.y) * clampedT,
+              z: A.z + (B.z - A.z) * clampedT,
+              edgeId: edge.id
+            });
+          }
+        }
+      }
+
+      const uniquePts = [];
+      for (const pt of rawIntersections) {
+        const existing = uniquePts.find(u => vecDist(u, pt) < 1e-4);
+        if (!existing) {
+          uniquePts.push({ x: pt.x, y: pt.y, z: pt.z, edges: [pt.edgeId] });
+        } else if (!existing.edges.includes(pt.edgeId)) {
+          existing.edges.push(pt.edgeId);
+        }
+      }
+
+      if (uniquePts.length < 3) {
+        return {
+          valid: false,
+          reason: '平面が立方体の内部を横切っていません（頂点または辺のみに接しています）。',
+          userPoints: p3d,
+          polygon: uniquePts,
+          segments: [],
+        };
+      }
+
+      const centroid = uniquePts.reduce(
+        (acc, p) => ({ x: acc.x + p.x / uniquePts.length, y: acc.y + p.y / uniquePts.length, z: acc.z + p.z / uniquePts.length }),
+        { x: 0, y: 0, z: 0 }
+      );
+
+      let ref = Math.abs(normal.y) < 0.9 ? { x: 0, y: 1, z: 0 } : { x: 1, y: 0, z: 0 };
+      const uAxis = vecNorm(vecCross(ref, normal));
+      const vAxis = vecNorm(vecCross(normal, uAxis));
+
+      const sortedPolygon = uniquePts
+        .map(pt => {
+          const rel = vecSub(pt, centroid);
+          const u = vecDot(rel, uAxis);
+          const v = vecDot(rel, vAxis);
+          return { ...pt, u, v, angle: Math.atan2(v, u) };
+        })
+        .sort((a, b) => a.angle - b.angle);
+
+      const sectionSegments = [];
+      for (let i = 0; i < sortedPolygon.length; i++) {
+        const pA = sortedPolygon[i];
+        const pB = sortedPolygon[(i + 1) % sortedPolygon.length];
+        const mid = vecScale(vecAdd(pA, pB), 0.5);
+
+        // この線分（切り口の辺）が乗っている立方体の面をすべて求める
+        // （面の内部を横切る場合は1つ、立方体の辺そのものに重なる場合は2つ、内部対角線などの場合は0個）
+        const onFaces = [];
+        if (Math.abs(mid.y - 1) < 1e-4) onFaces.push('TOP');
+        if (Math.abs(mid.y) < 1e-4)     onFaces.push('BOTTOM');
+        if (Math.abs(mid.z - 1) < 1e-4) onFaces.push('FRONT');
+        if (Math.abs(mid.z) < 1e-4)     onFaces.push('BACK');
+        if (Math.abs(mid.x) < 1e-4)     onFaces.push('LEFT');
+        if (Math.abs(mid.x - 1) < 1e-4) onFaces.push('RIGHT');
+
+        const segId = onFaces.length > 0 ? onFaces.join('_') : `SEG_${i}`;
+        sectionSegments.push({ id: segId, pA, pB, onFaces, length: vecDist(pA, pB) });
+      }
+
+      const shapeInfo = classifyPolygon(sortedPolygon);
+
+      return {
+        valid: true,
+        normal,
+        d,
+        centroid,
+        uAxis,
+        vAxis,
+        userPoints: p3d,
+        polygon: sortedPolygon,
+        segments: sectionSegments,
+        shapeInfo,
+      };
+    }
+
+    function classifyPolygon(poly) {
+      const n = poly.length;
+      const sideLengths = [];
+      const vectors = [];
+
+      for (let i = 0; i < n; i++) {
+        const curr = poly[i];
+        const next = poly[(i + 1) % n];
+        const v = vecSub(next, curr);
+        vectors.push(v);
+        sideLengths.push(vecLen(v));
+      }
+
+      const scaleCm = 10;
+      const perimeterCm = sideLengths.reduce((a, b) => a + b, 0) * scaleCm;
+
+      let areaUnit = 0;
+      for (let i = 1; i < n - 1; i++) {
+        const vA = vecSub(poly[i], poly[0]);
+        const vB = vecSub(poly[i + 1], poly[0]);
+        areaUnit += 0.5 * vecLen(vecCross(vA, vB));
+      }
+      const areaCm2 = areaUnit * scaleCm * scaleCm;
+
+      const eps = 1e-2;
+      const allSidesEqual = sideLengths.every(len => Math.abs(len - sideLengths[0]) < eps);
+
+      const rightAngles = [];
+      for (let i = 0; i < n; i++) {
+        const prevVec = vecNorm(vectors[(i - 1 + n) % n]);
+        const currVec = vecNorm(vectors[i]);
+        const dot = Math.abs(vecDot(prevVec, currVec));
+        rightAngles.push(dot < eps);
+      }
+      const allRightAngles = rightAngles.every(Boolean);
+
+      let name = `${n}角形`;
+
+      if (n === 3) {
+        const [a, b, c] = sideLengths;
+        const ab = Math.abs(a - b) < eps;
+        const bc = Math.abs(b - c) < eps;
+        const ca = Math.abs(c - a) < eps;
+        const hasRight = rightAngles.some(Boolean);
+
+        if (ab && bc) {
+          name = '正三角形';
+        } else if (ab || bc || ca) {
+          name = hasRight ? '直角二等辺三角形' : '二等辺三角形';
+        } else if (hasRight) {
+          name = '直角三角形';
+        } else {
+          name = '三角形（不等辺）';
+        }
+      } else if (n === 4) {
+        const dir0 = vecNorm(vectors[0]);
+        const dir1 = vecNorm(vectors[1]);
+        const dir2 = vecNorm(vectors[2]);
+        const dir3 = vecNorm(vectors[3]);
+
+        const p02 = vecLen(vecCross(dir0, dir2)) < eps;
+        const p13 = vecLen(vecCross(dir1, dir3)) < eps;
+
+        if (allRightAngles && allSidesEqual) {
+          name = '正方形';
+        } else if (allRightAngles) {
+          name = '長方形';
+        } else if (allSidesEqual) {
+          name = 'ひし形';
+        } else if (p02 && p13) {
+          name = '平行四辺形';
+        } else if (p02 || p13) {
+          const legEqual = p02
+            ? Math.abs(sideLengths[1] - sideLengths[3]) < eps
+            : Math.abs(sideLengths[0] - sideLengths[2]) < eps;
+          name = legEqual ? '等脚台形' : '台形';
+        } else {
+          name = '四角形';
+        }
+      } else if (n === 5) {
+        name = '五角形';
+      } else if (n === 6) {
+        name = allSidesEqual ? '正六角形' : '六角形';
+      }
+
+      return {
+        name,
+        vertexCount: n,
+        areaCm2,
+        perimeterCm,
+        sideLengths,
+      };
+    }
+
+    // 見取り図モード時のY軸90度単位回転変換（中心基準）
+    function rotateMitorizuCoords(x, y, z) {
+      const q = ((state.mitorizu.rotQuarter % 4) + 4) % 4;
+      if (q === 1) return { x: z, y, z: -x };
+      if (q === 2) return { x: -x, y, z: -z };
+      if (q === 3) return { x: -z, y, z: x };
+      return { x, y, z };
+    }
+
+    function projectPoint(pt3d, width, height) {
+      const cx = width * 0.5;
+      const cy = height * 0.5;
+      const baseSize = Math.min(width, height) * 0.43;
+
+      const rawX = pt3d.x - 0.5;
+      const rawY = pt3d.y - 0.5;
+      const rawZ = pt3d.z - 0.5;
+
+      if (state.viewMode === 'mitorizu') {
+        const { x, y, z } = rotateMitorizuCoords(rawX, rawY, rawZ);
+        const vp = MITORIZU_VIEWPOINTS[state.mitorizu.vpIndex] || MITORIZU_VIEWPOINTS[0];
+        const depthRatio = 0.52;
+        const angle = Math.PI / 6;
+        const depthOffset = -z; // 奥が +0.5, 手前が -0.5
+        const projX = x + depthOffset * depthRatio * Math.cos(angle) * vp.dirX;
+        const projY = y + depthOffset * depthRatio * Math.sin(angle) * vp.dirY;
+
+        return {
+          x: cx + projX * baseSize,
+          y: cy - projY * baseSize,
+          depth: z,
+        };
+      } else {
+        const cosYaw = Math.cos(state.camera.yaw);
+        const sinYaw = Math.sin(state.camera.yaw);
+        const cosPitch = Math.cos(state.camera.pitch);
+        const sinPitch = Math.sin(state.camera.pitch);
+
+        const x1 = rawX * cosYaw + rawZ * sinYaw;
+        const z1 = -rawX * sinYaw + rawZ * cosYaw;
+        const y1 = rawY;
+
+        const y2 = y1 * cosPitch - z1 * sinPitch;
+        const z2 = y1 * sinPitch + z1 * cosPitch;
+        const x2 = x1;
+
+        const perspective = 3.6 / (3.6 - z2 * 0.45);
+        return {
+          x: cx + x2 * baseSize * 0.92 * perspective,
+          y: cy - y2 * baseSize * 0.92 * perspective,
+          depth: z2,
+        };
+      }
+    }
+
+    function getFaceVisibility() {
+      const vis = {};
+      if (state.viewMode === 'mitorizu') {
+        const vp = MITORIZU_VIEWPOINTS[state.mitorizu.vpIndex] || MITORIZU_VIEWPOINTS[0];
+        // 斜投影 (projX = x - z * kX, projY = y - z * kY) のヤコビアン行列式から厳密な手前向き視線ベクトル (vp.dirX, vp.dirY, 1) との内積で判定
+        const viewVec = { x: vp.dirX * 0.45, y: vp.dirY * 0.26, z: 1.0 };
+        for (const face of FACES) {
+          const rotN = rotateMitorizuCoords(face.normal.x, face.normal.y, face.normal.z);
+          const dot = rotN.x * viewVec.x + rotN.y * viewVec.y + rotN.z * viewVec.z;
+          vis[face.id] = dot > 0;
+        }
+        return vis;
+      }
+
+      const cosYaw = Math.cos(state.camera.yaw);
+      const sinYaw = Math.sin(state.camera.yaw);
+      const cosPitch = Math.cos(state.camera.pitch);
+      const sinPitch = Math.sin(state.camera.pitch);
+
+      for (const face of FACES) {
+        const n = face.normal;
+        const x1 = n.x * cosYaw + n.z * sinYaw;
+        const z1 = -n.x * sinYaw + n.z * cosYaw;
+        const y1 = n.y;
+        const z2 = y1 * sinPitch + z1 * cosPitch;
+        vis[face.id] = z2 > 0;
+      }
+      return vis;
+    }
+
+    // 立方体の辺が隠れ線（破線）かどうかを判定
+    function isEdgeHidden(edgeId, faceVis) {
+      const adjFaces = FACES.filter(f => f.edges.includes(edgeId));
+      return adjFaces.every(f => !faceVis[f.id]);
+    }
+
+    // 切り口の辺（線分）が隠れ線（破線）かどうかを判定
+    function isSectionSegmentHidden(seg, faceVis) {
+      if (!seg.onFaces || seg.onFaces.length === 0) {
+        // 立方体の内部を直接通る場合（まれなケース）は破線
+        return true;
+      }
+      // その線分が含まれる立方体の面のうち、1つでも「表（手前）の面」があれば実線、すべて裏の面なら破線
+      return !seg.onFaces.some(fid => faceVis[fid]);
+    }
+
+    // メインキャンバスの描画
+    function render() {
+      const dpr = window.devicePixelRatio || 1;
+      const rect = mainCanvas.getBoundingClientRect();
+      if (mainCanvas.width !== Math.round(rect.width * dpr) || mainCanvas.height !== Math.round(rect.height * dpr)) {
+        mainCanvas.width = Math.round(rect.width * dpr);
+        mainCanvas.height = Math.round(rect.height * dpr);
+      }
+
+      ctx.save();
+      ctx.scale(dpr, dpr);
+      const W = rect.width;
+      const H = rect.height;
+      ctx.clearRect(0, 0, W, H);
+
+      const style = getComputedStyle(document.documentElement);
+      const cubeEdgeColor = style.getPropertyValue('--cube-edge').trim();
+      const cubeHiddenColor = style.getPropertyValue('--cube-hidden').trim();
+      const cubeFaceColor = style.getPropertyValue('--cube-face').trim();
+      const sectionStrokeColor = style.getPropertyValue('--section-stroke').trim();
+      const sectionFillColor = style.getPropertyValue('--section-fill').trim();
+      const textPrimaryColor = style.getPropertyValue('--text-primary').trim();
+      const accentColor = style.getPropertyValue('--accent').trim();
+      const pointColors = {
+        p: style.getPropertyValue('--point-p').trim(),
+        q: style.getPropertyValue('--point-q').trim(),
+        r: style.getPropertyValue('--point-r').trim(),
+      };
+
+      const faceVis = getFaceVisibility();
+      const section = computeCrossSection();
+
+      // 延長線が1本以上選択されていれば「延長線をすべて消去」ボタンを表示
+      const hasAnyExt = state.extendedCubeEdges.size > 0 || state.extendedSectionFaces.size > 0;
+      clearExtensionsBtn.style.display = hasAnyExt ? 'inline-flex' : 'none';
+
+      // 1. 3Dモード時は奥の面を薄く塗る
+      if (state.viewMode === '3d') {
+        for (const face of FACES) {
+          if (!faceVis[face.id]) {
+            ctx.beginPath();
+            face.verts.forEach((vid, idx) => {
+              const p = projectPoint(VERTICES[vid], W, H);
+              if (idx === 0) ctx.moveTo(p.x, p.y);
+              else ctx.lineTo(p.x, p.y);
+            });
+            ctx.closePath();
+            ctx.fillStyle = cubeFaceColor;
+            ctx.fill();
+          }
+        }
+      }
+
+      // 2. 隠れ辺（奥の辺）を破線で描画
+      for (const edge of EDGES) {
+        if (isEdgeHidden(edge.id, faceVis)) {
+          const p1 = projectPoint(VERTICES[edge.v1], W, H);
+          const p2 = projectPoint(VERTICES[edge.v2], W, H);
+          const isHovered = state.hoverEdge && state.hoverEdge.type === 'cube' && state.hoverEdge.id === edge.id;
+          const isExtended = state.extendedCubeEdges.has(edge.id);
+
+          ctx.beginPath();
+          ctx.setLineDash([6, 6]);
+          ctx.strokeStyle = (isHovered || isExtended) ? accentColor : cubeHiddenColor;
+          ctx.lineWidth = isHovered ? 3.2 : 1.8;
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.stroke();
+        }
+      }
+      ctx.setLineDash([]);
+
+      // 3. クリック選択された延長線（立方体の辺の延長・切り口辺の延長・交点）を描画
+      drawSelectedExtensionLines(ctx, section, W, H, accentColor, sectionStrokeColor);
+
+      // 4. 切り口多角形の塗りつぶしと裏側の辺（破線）の描画
+      if (section.valid && section.polygon.length >= 3) {
+        const projPoly = section.polygon.map(pt => projectPoint(pt, W, H));
+
+        if (state.options.showSectionFill) {
+          ctx.beginPath();
+          projPoly.forEach((p, idx) => {
+            if (idx === 0) ctx.moveTo(p.x, p.y);
+            else ctx.lineTo(p.x, p.y);
+          });
+          ctx.closePath();
+          ctx.fillStyle = sectionFillColor;
+          ctx.fill();
+        }
+
+        // 切り口の裏側の辺（隠れ線）を破線で描画
+        for (const seg of section.segments) {
+          if (!isSectionSegmentHidden(seg, faceVis)) continue;
+          const pA = projectPoint(seg.pA, W, H);
+          const pB = projectPoint(seg.pB, W, H);
+          const isHovered = state.hoverEdge && state.hoverEdge.type === 'section' && state.hoverEdge.id === seg.id;
+
+          ctx.beginPath();
+          ctx.setLineDash([6, 5]);
+          ctx.lineWidth = isHovered ? 4.2 : 2.5;
+          ctx.strokeStyle = sectionStrokeColor;
+          ctx.moveTo(pA.x, pA.y);
+          ctx.lineTo(pB.x, pB.y);
+          ctx.stroke();
+        }
+        ctx.setLineDash([]);
+      }
+
+      // 5. 手前の可視辺（立方体の実線の辺）を描画
+      for (const edge of EDGES) {
+        if (!isEdgeHidden(edge.id, faceVis)) {
+          const p1 = projectPoint(VERTICES[edge.v1], W, H);
+          const p2 = projectPoint(VERTICES[edge.v2], W, H);
+          const isHovered = state.hoverEdge && state.hoverEdge.type === 'cube' && state.hoverEdge.id === edge.id;
+          const isExtended = state.extendedCubeEdges.has(edge.id);
+
+          ctx.beginPath();
+          ctx.setLineDash([]);
+          ctx.strokeStyle = (isHovered || isExtended) ? accentColor : cubeEdgeColor;
+          ctx.lineWidth = isHovered ? 3.5 : (isExtended ? 2.8 : 2.2);
+          ctx.lineCap = 'round';
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.stroke();
+        }
+      }
+
+      // 6. 切り口の表側の辺（実線）と交点を手前に描画（立方体の辺と重なる場合も切り口の実線がはっきり見えるようにする）
+      if (section.valid && section.polygon.length >= 3) {
+        for (const seg of section.segments) {
+          if (isSectionSegmentHidden(seg, faceVis)) continue;
+          const pA = projectPoint(seg.pA, W, H);
+          const pB = projectPoint(seg.pB, W, H);
+          const isHovered = state.hoverEdge && state.hoverEdge.type === 'section' && state.hoverEdge.id === seg.id;
+
+          ctx.beginPath();
+          ctx.setLineDash([]);
+          ctx.lineWidth = isHovered ? 4.6 : 3.2;
+          ctx.lineCap = 'round';
+          ctx.strokeStyle = sectionStrokeColor;
+          ctx.moveTo(pA.x, pA.y);
+          ctx.lineTo(pB.x, pB.y);
+          ctx.stroke();
+        }
+
+        // 切り口の全交点
+        if (state.options.showIntersections) {
+          for (const pt of section.polygon) {
+            const p2d = projectPoint(pt, W, H);
+            ctx.beginPath();
+            ctx.arc(p2d.x, p2d.y, 4.5, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = sectionStrokeColor;
+            ctx.stroke();
+          }
+        }
+      }
+
+      // 7. 立方体の頂点ラベル (A〜H)
+      if (state.options.showVertices) {
+        ctx.font = '700 14px "Segoe UI", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        for (const key of Object.keys(VERTICES)) {
+          const v = VERTICES[key];
+          const p = projectPoint(v, W, H);
+
+          const center2d = projectPoint({ x: 0.5, y: 0.5, z: 0.5 }, W, H);
+          const dx = p.x - center2d.x;
+          const dy = p.y - center2d.y;
+          const dist = Math.hypot(dx, dy) || 1;
+          const lx = p.x + (dx / dist) * 20;
+          const ly = p.y + (dy / dist) * 20;
+
+          ctx.fillStyle = textPrimaryColor;
+          ctx.fillText(v.id, lx, ly);
+        }
+      }
+
+      // 8. 指定された3点 P, Q, R のハンドルを描画
+      section.userPoints.forEach((pt, idx) => {
+        const p2d = projectPoint(pt, W, H);
+        const color = pointColors[pt.colorKey];
+        const isActive = state.activePointIndex === idx;
+        const isHovered = state.hoverPointIndex === idx;
+
+        if (isActive || isHovered) {
+          ctx.beginPath();
+          ctx.arc(p2d.x, p2d.y, 14, 0, Math.PI * 2);
+          ctx.fillStyle = color + '33';
+          ctx.fill();
+        }
+
+        ctx.beginPath();
+        ctx.arc(p2d.x, p2d.y, isHovered ? 9.5 : 8.5, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.lineWidth = 2.4;
+        ctx.strokeStyle = '#ffffff';
+        ctx.stroke();
+
+        ctx.font = '700 11px "Segoe UI", sans-serif';
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(pt.name, p2d.x, p2d.y + 0.5);
+      });
+
+      ctx.restore();
+
+      renderTrueShape(section);
+      updateSectionUI(section);
+    }
+
+    // クリック選択された立方体の辺や切り口辺の延長線と、その交点（作図の補助点）を描画
+    function drawSelectedExtensionLines(ctx, section, W, H, accentColor, sectionStrokeColor) {
+      const hasCubeExt = state.extendedCubeEdges.size > 0;
+      const hasSecExt = state.extendedSectionFaces.size > 0;
+      if (!hasCubeExt && !hasSecExt) return;
+
+      ctx.save();
+
+      // 1. 選択された立方体の辺を両方向に延長描画
+      if (hasCubeExt) {
+        ctx.setLineDash([5, 4]);
+        ctx.strokeStyle = accentColor;
+        ctx.lineWidth = 2.0;
+        ctx.globalAlpha = 0.88;
+
+        for (const edgeId of state.extendedCubeEdges) {
+          const edge = getEdgeById(edgeId);
+          if (!edge) continue;
+          const A = VERTICES[edge.v1];
+          const B = VERTICES[edge.v2];
+          const dir = vecSub(B, A);
+
+          const extStart = vecSub(A, vecScale(dir, 1.25));
+          const extEnd = vecAdd(B, vecScale(dir, 1.25));
+
+          const pStart = projectPoint(extStart, W, H);
+          const pA = projectPoint(A, W, H);
+          const pB = projectPoint(B, W, H);
+          const pEnd = projectPoint(extEnd, W, H);
+
+          ctx.beginPath();
+          ctx.moveTo(pStart.x, pStart.y);
+          ctx.lineTo(pA.x, pA.y);
+          ctx.moveTo(pB.x, pB.y);
+          ctx.lineTo(pEnd.x, pEnd.y);
+          ctx.stroke();
+
+          // 切断面との交点（立方体外の作図補助点）があればドットを表示
+          if (section.valid) {
+            const denom = vecDot(section.normal, dir);
+            if (Math.abs(denom) > 1e-5) {
+              const t = (section.d - vecDot(section.normal, A)) / denom;
+              if ((t < -0.01 || t > 1.01) && t >= -1.35 && t <= 2.35) {
+                const hit3d = vecAdd(A, vecScale(dir, t));
+                const hit2d = projectPoint(hit3d, W, H);
+
+                ctx.save();
+                ctx.setLineDash([]);
+                ctx.beginPath();
+                ctx.arc(hit2d.x, hit2d.y, 4.8, 0, Math.PI * 2);
+                ctx.fillStyle = accentColor;
+                ctx.fill();
+                ctx.lineWidth = 1.8;
+                ctx.strokeStyle = '#ffffff';
+                ctx.stroke();
+                ctx.restore();
+              }
+            }
+          }
+        }
+      }
+
+      // 2. 選択された切り口の辺を両方向に延長描画
+      if (hasSecExt && section.valid) {
+        ctx.setLineDash([5, 4]);
+        ctx.strokeStyle = sectionStrokeColor;
+        ctx.lineWidth = 2.0;
+        ctx.globalAlpha = 0.85;
+
+        for (const seg of section.segments) {
+          if (!state.extendedSectionFaces.has(seg.id)) continue;
+          const dir = vecNorm(vecSub(seg.pB, seg.pA));
+          if (vecLen(dir) < 1e-6) continue;
+
+          const extA = vecSub(seg.pA, vecScale(dir, 1.35));
+          const extB = vecAdd(seg.pB, vecScale(dir, 1.35));
+          const pStart = projectPoint(extA, W, H);
+          const pA = projectPoint(seg.pA, W, H);
+          const pB = projectPoint(seg.pB, W, H);
+          const pEnd = projectPoint(extB, W, H);
+
+          ctx.beginPath();
+          ctx.moveTo(pStart.x, pStart.y);
+          ctx.lineTo(pA.x, pA.y);
+          ctx.moveTo(pB.x, pB.y);
+          ctx.lineTo(pEnd.x, pEnd.y);
+          ctx.stroke();
+        }
+      }
+
+      ctx.restore();
+    }
+
+    // 右下ミニキャンバスに切り口の2D実形を描画
+    function renderTrueShape(section) {
+      const dpr = window.devicePixelRatio || 1;
+      const W = 176;
+      const H = 146;
+      if (trueShapeCanvas.width !== W * dpr || trueShapeCanvas.height !== H * dpr) {
+        trueShapeCanvas.width = W * dpr;
+        trueShapeCanvas.height = H * dpr;
+      }
+
+      tsCtx.save();
+      tsCtx.scale(dpr, dpr);
+      tsCtx.clearRect(0, 0, W, H);
+
+      const style = getComputedStyle(document.documentElement);
+      const strokeColor = style.getPropertyValue('--section-stroke').trim();
+      const fillColor = style.getPropertyValue('--section-fill').trim();
+      const subTextColor = style.getPropertyValue('--text-secondary').trim();
+
+      if (!section.valid || section.polygon.length < 3) {
+        tsCtx.fillStyle = subTextColor;
+        tsCtx.font = '600 11px sans-serif';
+        tsCtx.textAlign = 'center';
+        tsCtx.fillText('断面なし', W / 2, H / 2);
+        tsCtx.restore();
+        return;
+      }
+
+      const pts2d = section.polygon.map(p => ({ u: p.u, v: p.v }));
+      const minU = Math.min(...pts2d.map(p => p.u));
+      const maxU = Math.max(...pts2d.map(p => p.u));
+      const minV = Math.min(...pts2d.map(p => p.v));
+      const maxV = Math.max(...pts2d.map(p => p.v));
+
+      const spanU = Math.max(maxU - minU, 0.2);
+      const spanV = Math.max(maxV - minV, 0.2);
+      const scale = Math.min((W - 38) / spanU, (H - 34) / spanV);
+
+      const midU = (minU + maxU) / 2;
+      const midV = (minV + maxV) / 2;
+
+      const mapPt = p => ({
+        x: W / 2 + (p.u - midU) * scale,
+        y: H / 2 - (p.v - midV) * scale,
+      });
+
+      const mapped = pts2d.map(mapPt);
+
+      tsCtx.beginPath();
+      mapped.forEach((p, idx) => {
+        if (idx === 0) tsCtx.moveTo(p.x, p.y);
+        else tsCtx.lineTo(p.x, p.y);
+      });
+      tsCtx.closePath();
+      tsCtx.fillStyle = fillColor;
+      tsCtx.fill();
+      tsCtx.lineWidth = 2.2;
+      tsCtx.strokeStyle = strokeColor;
+      tsCtx.stroke();
+
+      for (const p of mapped) {
+        tsCtx.beginPath();
+        tsCtx.arc(p.x, p.y, 3.2, 0, Math.PI * 2);
+        tsCtx.fillStyle = strokeColor;
+        tsCtx.fill();
+      }
+
+      tsCtx.restore();
+    }
+
+    function updateSectionUI(section) {
+      const shapeNameBadge = document.getElementById('shapeNameBadge');
+      const shapeDetailBadge = document.getElementById('shapeDetailBadge');
+      const statShapeName = document.getElementById('statShapeName');
+      const statArea = document.getElementById('statArea');
+      const statPerimeter = document.getElementById('statPerimeter');
+      const trueShapeVerticesCount = document.getElementById('trueShapeVerticesCount');
+
+      if (!section.valid) {
+        shapeNameBadge.textContent = '断面未成立';
+        shapeDetailBadge.textContent = '3点の位置を調整してください';
+        statShapeName.textContent = '―';
+        statArea.textContent = '―';
+        statPerimeter.textContent = '―';
+        trueShapeVerticesCount.textContent = '―';
+        return;
+      }
+
+      const info = section.shapeInfo;
+      shapeNameBadge.textContent = info.name;
+      shapeDetailBadge.textContent = `${info.vertexCount}頂点・${info.vertexCount}辺`;
+      statShapeName.textContent = info.name;
+      statArea.textContent = `${info.areaCm2.toFixed(1)} cm²`;
+      statPerimeter.textContent = `${info.perimeterCm.toFixed(1)} cm`;
+      trueShapeVerticesCount.textContent = `${info.vertexCount}角形`;
+    }
+
+    // 右パネルの3点(P, Q, R)操作カードを生成・更新（スライダーなし・1行コンパクト構成）
+    function buildPointCards() {
+      pointCardsContainer.innerHTML = '';
+
+      state.points.forEach((pt, idx) => {
+        const card = document.createElement('div');
+        card.className = `point-card ${state.activePointIndex === idx ? 'active-target' : ''}`;
+        card.addEventListener('click', () => {
+          state.activePointIndex = idx;
+          syncPointCardsUI();
+          render();
+        });
+
+        const topRow = document.createElement('div');
+        topRow.className = 'point-row-top';
+
+        const labelGroup = document.createElement('div');
+        labelGroup.className = 'point-label-group';
+        labelGroup.innerHTML = `
+          <span class="point-pill ${pt.colorKey}">${pt.name}</span>
+          <span class="point-title">点${pt.name}</span>
+        `;
+
+        const select = document.createElement('select');
+        select.className = 'edge-select';
+        select.id = `edgeSelect_${idx}`;
+
+        const groups = ['上面', '側辺', '底面'];
+        groups.forEach(gName => {
+          const optGroup = document.createElement('optgroup');
+          optGroup.label = gName;
+          EDGES.filter(e => e.group === gName).forEach(edge => {
+            const opt = document.createElement('option');
+            opt.value = edge.id;
+            opt.textContent = `辺 ${edge.id} (${edge.v1}→${edge.v2})`;
+            if (edge.id === pt.edgeId) opt.selected = true;
+            optGroup.appendChild(opt);
+          });
+          select.appendChild(optGroup);
+        });
+
+        select.addEventListener('change', (e) => {
+          e.stopPropagation();
+          state.activePointIndex = idx;
+          state.points[idx].edgeId = e.target.value;
+          syncPointCardsUI();
+          render();
+        });
+
+        const snapGroup = document.createElement('div');
+        snapGroup.className = 'quick-snap-btns';
+        snapGroup.id = `snapGroup_${idx}`;
+        [
+          { label: '始点', val: 0 },
+          { label: '中点', val: 0.5 },
+          { label: '終点', val: 1 },
+        ].forEach(s => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'snap-btn';
+          btn.dataset.val = String(s.val);
+          btn.textContent = s.label;
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            state.activePointIndex = idx;
+            state.points[idx].t = s.val;
+            syncPointCardsUI();
+            render();
+          });
+          snapGroup.appendChild(btn);
+        });
+
+        const badge = document.createElement('span');
+        badge.className = 'ratio-badge';
+        badge.id = `ratioBadge_${idx}`;
+        badge.textContent = formatEdgePosition(pt.edgeId, pt.t);
+
+        topRow.appendChild(labelGroup);
+        topRow.appendChild(select);
+        topRow.appendChild(snapGroup);
+        topRow.appendChild(badge);
+
+        card.appendChild(topRow);
+        pointCardsContainer.appendChild(card);
+      });
+
+      syncPointCardsUI();
+    }
+
+    function syncPointCardsUI() {
+      const cards = pointCardsContainer.querySelectorAll('.point-card');
+      state.points.forEach((pt, idx) => {
+        if (cards[idx]) {
+          cards[idx].classList.toggle('active-target', state.activePointIndex === idx);
+        }
+        const select = document.getElementById(`edgeSelect_${idx}`);
+        const badge = document.getElementById(`ratioBadge_${idx}`);
+        const snapGroup = document.getElementById(`snapGroup_${idx}`);
+        if (select && select.value !== pt.edgeId) select.value = pt.edgeId;
+        if (badge) badge.textContent = formatEdgePosition(pt.edgeId, pt.t);
+        if (snapGroup) {
+          snapGroup.querySelectorAll('.snap-btn').forEach(btn => {
+            const val = parseFloat(btn.dataset.val);
+            btn.classList.toggle('active-snap', Math.abs(pt.t - val) < 0.015);
+          });
+        }
+      });
+    }
+
+    // キャンバス上のマウス/タッチ操作
+    function getCanvasMousePos(evt) {
+      const rect = mainCanvas.getBoundingClientRect();
+      return {
+        x: evt.clientX - rect.left,
+        y: evt.clientY - rect.top,
+        W: rect.width,
+        H: rect.height,
+      };
+    }
+
+    function closestPointOnSegment2D(px, py, ax, ay, bx, by) {
+      const dx = bx - ax;
+      const dy = by - ay;
+      const lenSq = dx * dx + dy * dy;
+      if (lenSq < 1e-6) return { t: 0, dist: Math.hypot(px - ax, py - ay) };
+      let t = ((px - ax) * dx + (py - ay) * dy) / lenSq;
+      t = Math.max(0, Math.min(1, t));
+      const projX = ax + t * dx;
+      const projY = ay + t * dy;
+      return { t, dist: Math.hypot(px - projX, py - projY) };
+    }
+
+    function snapRatio(rawT) {
+      const snapTargets = [0, 0.25, 1/3, 0.5, 2/3, 0.75, 1];
+      for (const target of snapTargets) {
+        if (Math.abs(rawT - target) < 0.032) return Number(target.toFixed(4));
+      }
+      return Math.round(rawT * 20) / 20;
+    }
+
+    // マウス位置に最も近い辺（立方体の辺 または 切り口の辺）を検出
+    function findHoveredEdge(x, y, W, H) {
+      const section = computeCrossSection();
+      let bestHit = null;
+      let minDist = 11;
+
+      // 切り口の辺を判定
+      if (section.valid) {
+        for (const seg of section.segments) {
+          const pA = projectPoint(seg.pA, W, H);
+          const pB = projectPoint(seg.pB, W, H);
+          const { dist } = closestPointOnSegment2D(x, y, pA.x, pA.y, pB.x, pB.y);
+          if (dist < minDist) {
+            minDist = dist;
+            bestHit = { type: 'section', id: seg.id };
+          }
+        }
+      }
+
+      // 立方体の12辺を判定
+      for (const edge of EDGES) {
+        const p1 = projectPoint(VERTICES[edge.v1], W, H);
+        const p2 = projectPoint(VERTICES[edge.v2], W, H);
+        const { dist } = closestPointOnSegment2D(x, y, p1.x, p1.y, p2.x, p2.y);
+        if (dist < minDist) {
+          minDist = dist;
+          bestHit = { type: 'cube', id: edge.id };
+        }
+      }
+
+      return bestHit;
+    }
+
+    mainCanvas.addEventListener('pointerdown', (evt) => {
+      const { x, y, W, H } = getCanvasMousePos(evt);
+
+      // 1. 点 P, Q, R のハンドルをクリックしたか判定（ドラッグで移動）
+      let hitPointIdx = -1;
+      let minPtDist = 18;
+      state.points.forEach((pt, idx) => {
+        const p3d = getPointOnEdge3D(pt.edgeId, pt.t);
+        const p2d = projectPoint(p3d, W, H);
+        const d = Math.hypot(x - p2d.x, y - p2d.y);
+        if (d < minPtDist) {
+          minPtDist = d;
+          hitPointIdx = idx;
+        }
+      });
+
+      if (hitPointIdx !== -1) {
+        state.activePointIndex = hitPointIdx;
+        state.dragging.type = 'point';
+        state.dragging.pointIndex = hitPointIdx;
+        mainCanvas.classList.add('dragging-handle');
+        mainCanvas.setPointerCapture(evt.pointerId);
+        syncPointCardsUI();
+        render();
+        return;
+      }
+
+      // 2. 立方体の辺 または 切り口の辺をクリックしたか判定 -> 延長線のON/OFFをトグル
+      const hitEdge = findHoveredEdge(x, y, W, H);
+      if (hitEdge) {
+        if (hitEdge.type === 'cube') {
+          if (state.extendedCubeEdges.has(hitEdge.id)) {
+            state.extendedCubeEdges.delete(hitEdge.id);
+          } else {
+            state.extendedCubeEdges.add(hitEdge.id);
+          }
+        } else if (hitEdge.type === 'section') {
+          if (state.extendedSectionFaces.has(hitEdge.id)) {
+            state.extendedSectionFaces.delete(hitEdge.id);
+          } else {
+            state.extendedSectionFaces.add(hitEdge.id);
+          }
+        }
+        render();
+        return;
+      }
+
+      // 3. 背景ドラッグで3D回転（3D表示モード時）
+      if (state.viewMode === '3d') {
+        state.dragging.type = 'camera';
+        state.dragging.lastX = evt.clientX;
+        state.dragging.lastY = evt.clientY;
+        mainCanvas.setPointerCapture(evt.pointerId);
+      }
+    });
+
+    mainCanvas.addEventListener('pointermove', (evt) => {
+      const { x, y, W, H } = getCanvasMousePos(evt);
+
+      if (state.dragging.type === 'point') {
+        const idx = state.dragging.pointIndex;
+        let bestEdge = state.points[idx].edgeId;
+        let bestT = state.points[idx].t;
+        let minEdgeDist = Infinity;
+
+        for (const edge of EDGES) {
+          const p1 = projectPoint(VERTICES[edge.v1], W, H);
+          const p2 = projectPoint(VERTICES[edge.v2], W, H);
+          const { t, dist } = closestPointOnSegment2D(x, y, p1.x, p1.y, p2.x, p2.y);
+          const weightedDist = edge.id === state.points[idx].edgeId ? dist * 0.75 : dist;
+          if (weightedDist < minEdgeDist) {
+            minEdgeDist = weightedDist;
+            bestEdge = edge.id;
+            bestT = snapRatio(t);
+          }
+        }
+
+        state.points[idx].edgeId = bestEdge;
+        state.points[idx].t = bestT;
+        syncPointCardsUI();
+        render();
+        return;
+      }
+
+      if (state.dragging.type === 'camera' && state.viewMode === '3d') {
+        const dx = evt.clientX - state.dragging.lastX;
+        const dy = evt.clientY - state.dragging.lastY;
+        state.dragging.lastX = evt.clientX;
+        state.dragging.lastY = evt.clientY;
+
+        state.camera.yaw -= dx * 0.0085;
+        state.camera.pitch = Math.max(-1.25, Math.min(1.25, state.camera.pitch + dy * 0.0085));
+        render();
+        return;
+      }
+
+      // 点P, Q, R または 辺のホバー判定
+      let hoverIdx = -1;
+      state.points.forEach((pt, idx) => {
+        const p3d = getPointOnEdge3D(pt.edgeId, pt.t);
+        const p2d = projectPoint(p3d, W, H);
+        if (Math.hypot(x - p2d.x, y - p2d.y) < 16) {
+          hoverIdx = idx;
+        }
+      });
+
+      const nextHoverEdge = hoverIdx === -1 ? findHoveredEdge(x, y, W, H) : null;
+      const edgeChanged =
+        (state.hoverEdge?.type !== nextHoverEdge?.type) ||
+        (state.hoverEdge?.id !== nextHoverEdge?.id);
+
+      if (hoverIdx !== state.hoverPointIndex || edgeChanged) {
+        state.hoverPointIndex = hoverIdx;
+        state.hoverEdge = nextHoverEdge;
+        mainCanvas.classList.toggle('hovering-handle', hoverIdx !== -1 || Boolean(nextHoverEdge));
+        render();
+      }
+    });
+
+    function endDrag(evt) {
+      if (state.dragging.type) {
+        state.dragging.type = null;
+        state.dragging.pointIndex = -1;
+        mainCanvas.classList.remove('dragging-handle');
+        try { mainCanvas.releasePointerCapture(evt.pointerId); } catch (_) {}
+      }
+    }
+
+    mainCanvas.addEventListener('pointerup', endDrag);
+    mainCanvas.addEventListener('pointercancel', endDrag);
+
+    // 延長線一括クリアボタン（キャンバス左下）
+    clearExtensionsBtn.addEventListener('click', () => {
+      state.extendedCubeEdges.clear();
+      state.extendedSectionFaces.clear();
+      render();
+    });
+
+    // 見取り図の視点切り替えボタン群
+    function syncMitorizuViewButtons() {
+      document.querySelectorAll('.mitorizu-vp-btn').forEach(btn => {
+        const vp = parseInt(btn.getAttribute('data-vp'), 10);
+        btn.classList.toggle('active', state.mitorizu.vpIndex === vp);
+      });
+      document.querySelectorAll('.mitorizu-rot-btn').forEach(btn => {
+        const rot = parseInt(btn.getAttribute('data-rot'), 10);
+        btn.classList.toggle('active', state.mitorizu.rotQuarter === rot);
+      });
+    }
+
+    document.querySelectorAll('.mitorizu-vp-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.mitorizu.vpIndex = parseInt(btn.getAttribute('data-vp'), 10);
+        syncMitorizuViewButtons();
+        render();
+      });
+    });
+
+    document.querySelectorAll('.mitorizu-rot-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.mitorizu.rotQuarter = parseInt(btn.getAttribute('data-rot'), 10);
+        syncMitorizuViewButtons();
+        render();
+      });
+    });
+
+    // 表示モード切替 (3D表示 vs 見取り図表示)
+    const mode3dBtn = document.getElementById('mode3dBtn');
+    const modeMitorizuBtn = document.getElementById('modeMitorizuBtn');
+    const modeHintText = document.getElementById('modeHintText');
+    const topShapeBadge = document.getElementById('topShapeBadge');
+    const toggleTopInfoBtn = document.getElementById('toggleTopInfoBtn');
+    const toggleTopInfoLabel = document.getElementById('toggleTopInfoLabel');
+
+    let isTopInfoVisible = true;
+
+    function updateTopOverlayVisibility() {
+      topShapeBadge.style.display = isTopInfoVisible ? 'flex' : 'none';
+      mitorizuViewBar.style.display = (isTopInfoVisible && state.viewMode === 'mitorizu') ? 'flex' : 'none';
+      modeHintText.style.display = isTopInfoVisible ? 'block' : 'none';
+      toggleTopInfoLabel.textContent = isTopInfoVisible ? '▲ パネルを隠す' : '▼ パネルを表示';
+    }
+
+    toggleTopInfoBtn.addEventListener('click', () => {
+      isTopInfoVisible = !isTopInfoVisible;
+      updateTopOverlayVisibility();
+    });
+
+    function setViewMode(mode) {
+      state.viewMode = mode;
+      mode3dBtn.classList.toggle('active', mode === '3d');
+      modeMitorizuBtn.classList.toggle('active', mode === 'mitorizu');
+      mainCanvas.classList.toggle('mode-mitorizu', mode === 'mitorizu');
+
+      if (mode === '3d') {
+        modeHintText.textContent = '💡 点P・Q・Rをドラッグで移動 ／ 辺（立方体・切り口）をクリックで延長線の表示・非表示 ／ 背景ドラッグで3D回転';
+      } else {
+        modeHintText.textContent = '💡 見取り図モード ／ 上部のボタンで見取り図の視点・向きを切り替え ／ 辺をクリックで延長線の表示・非表示';
+      }
+      updateTopOverlayVisibility();
+      render();
+    }
+
+    mode3dBtn.addEventListener('click', () => setViewMode('3d'));
+    modeMitorizuBtn.addEventListener('click', () => setViewMode('mitorizu'));
+
+    // 視点リセットボタン
+    document.getElementById('resetCameraBtn').addEventListener('click', () => {
+      state.camera.yaw = -0.58;
+      state.camera.pitch = 0.44;
+      state.mitorizu.vpIndex = 0;
+      state.mitorizu.rotQuarter = 0;
+      syncMitorizuViewButtons();
+      render();
+    });
+
+    // ダークモード切り替え
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const themeIconSun = document.getElementById('themeIconSun');
+    const themeIconMoon = document.getElementById('themeIconMoon');
+    const themeBtnLabel = document.getElementById('themeBtnLabel');
+
+    themeToggleBtn.addEventListener('click', () => {
+      const html = document.documentElement;
+      const isDark = html.getAttribute('data-theme') === 'dark';
+      const nextTheme = isDark ? 'light' : 'dark';
+      html.setAttribute('data-theme', nextTheme);
+
+      themeIconSun.style.display = nextTheme === 'dark' ? 'block' : 'none';
+      themeIconMoon.style.display = nextTheme === 'dark' ? 'none' : 'block';
+      themeBtnLabel.textContent = nextTheme === 'dark' ? 'ライト' : 'ダーク';
+      render();
+    });
+
+    // 全画面表示ボタン
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const fsExpandIcon = document.getElementById('fsExpandIcon');
+    const fsCompressIcon = document.getElementById('fsCompressIcon');
+    const fsBtnLabel = document.getElementById('fsBtnLabel');
+
+    function updateFullscreenButtonUI() {
+      const isFs = Boolean(document.fullscreenElement);
+      fsExpandIcon.style.display = isFs ? 'none' : 'block';
+      fsCompressIcon.style.display = isFs ? 'block' : 'none';
+      fsBtnLabel.textContent = isFs ? '全画面終了' : '全画面';
+    }
+
+    fullscreenBtn.addEventListener('click', async () => {
+      try {
+        if (!document.fullscreenElement) {
+          await document.documentElement.requestFullscreen();
+        } else {
+          await document.exitFullscreen();
+        }
+      } catch (err) {
+        console.warn('Fullscreen toggle error:', err);
+      }
+    });
+
+    document.addEventListener('fullscreenchange', () => {
+      updateFullscreenButtonUI();
+      render();
+    });
+
+    // 表示オプションの切り替えチップ
+    function bindToggleChip(btnId, optionKey) {
+      const btn = document.getElementById(btnId);
+      btn.addEventListener('click', () => {
+        state.options[optionKey] = !state.options[optionKey];
+        btn.classList.toggle('active', state.options[optionKey]);
+        render();
+      });
+    }
+
+    bindToggleChip('toggleVerticesBtn', 'showVertices');
+    bindToggleChip('toggleSectionFillBtn', 'showSectionFill');
+    bindToggleChip('toggleIntersectionsBtn', 'showIntersections');
+
+    // プリセットボタンの適用
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.getAttribute('data-preset');
+        const preset = PRESETS[key];
+        if (!preset) return;
+
+        preset.points.forEach((p, idx) => {
+          state.points[idx].edgeId = p.edgeId;
+          state.points[idx].t = p.t;
+        });
+
+        document.getElementById('explanationText').textContent = preset.desc;
+        syncPointCardsUI();
+        render();
+      });
+    });
+
+    // ウィンドウリサイズ対応
+    window.addEventListener('resize', () => {
+      render();
+    });
+
+    // 初期化
+    buildPointCards();
+    render();
+  </script>
+</body>
+</html>

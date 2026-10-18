@@ -1,5 +1,691 @@
-<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>立体のかぞえ方研究室</title><meta name="description" content="面・辺・頂点を、回して、色で見て、式で理解しよう。"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath fill='%232c63ed' d='M20 2 38 12 38 28 20 38 2 28 2 12Z'/%3E%3Cpath fill='none' stroke='white' stroke-width='2' d='M2 12 20 22 38 12M20 22V38M20 2V22'/%3E%3C/svg%3E"><style>
-*{box-sizing:border-box}body{margin:0;background:#f3f6fb;color:#18283f;font-family:'Yu Gothic UI','Meiryo',sans-serif;font-size:16px}button,input{font:inherit}button{cursor:pointer;border:1px solid #cbd5e5;background:white;color:inherit;border-radius:12px;padding:12px 16px;min-height:46px}button:hover{background:#eaf0ff}button:focus-visible,input:focus-visible,canvas:focus-visible{outline:3px solid #eea42c;outline-offset:3px}button.active{background:#2559da;color:white;border-color:#2559da}header{max-width:1280px;margin:auto;padding:27px 28px 20px;display:flex;align-items:center;gap:14px}header .mark{background:#2559da;color:white;border-radius:14px;font-size:26px;padding:6px 13px}h1{font-size:24px;margin:0}header p{margin:3px 0 0;color:#596b83;font-size:14px}main{max-width:1280px;margin:auto;padding:0 28px 32px}.solids{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}.solids button{text-align:left;font-weight:700}.solids small{display:block;font-size:14px;font-weight:400;margin-top:4px}.layout{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(340px,1fr);gap:22px}.viewer,.lesson{background:white;border:1px solid #dce3ee;border-radius:20px;overflow:hidden}.viewhead{padding:20px 22px 0;display:flex;align-items:center;justify-content:space-between;gap:10px}.viewhead strong{font-size:18px}.tag{font-size:14px;color:#596b83}canvas{width:100%;height:390px;display:block;touch-action:none;cursor:grab;background:radial-gradient(ellipse at center,#e8f0ff,white 70%)}.hint{text-align:center;color:#607189;font-size:14px;margin:0 16px 14px}.controls{padding:0 22px 20px;display:flex;flex-wrap:wrap;gap:8px}.controls button{padding:8px 12px;font-size:14px}.legend{display:flex;gap:16px;flex-wrap:wrap;padding:0 22px 18px;font-size:14px}.dot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:5px}.lesson{padding:24px}.tabs{display:flex;gap:8px}.tabs button{flex:1}.eyebrow{color:#2559da;font-weight:bold;font-size:14px;margin:24px 0 7px}h2{font-size:23px;line-height:1.5;margin:0 0 12px}.explain{line-height:1.85;margin:10px 0;color:#40516a}.formula{background:#edf3ff;border-left:4px solid #2559da;padding:18px;font-size:23px;font-weight:bold;border-radius:5px;margin:18px 0}.note{font-size:14px;line-height:1.75;color:#56677f}.stepper{display:flex;align-items:center;gap:8px;margin-top:20px}.stepper button{flex:1}.count{margin-top:20px;padding-top:18px;border-top:1px solid #dce3ee}.count label{display:block;font-size:14px;margin-bottom:8px}.range{display:flex;align-items:center;gap:12px}.range input{width:100%;accent-color:#2559da}.range output{white-space:nowrap;font-weight:bold}.summary{margin-top:20px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.stat{background:#f0f4fa;border-radius:12px;text-align:center;padding:11px}.stat span{font-size:14px;color:#52647d}.stat strong{display:block;font-size:28px;margin-top:3px}.verify{margin-top:20px;border:1px solid #dce3ee;background:white;border-radius:16px;padding:17px 22px;display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;font-size:15px}.verify span{color:#51627a}.footer{font-size:14px;color:#56677f;line-height:1.8;margin:14px 0 0} @media(max-width:850px){.layout{grid-template-columns:1fr}canvas{height:340px}.solids button{padding:12px 10px;font-size:14px}.solids small{font-size:12px}main{padding:0 14px 24px}header{padding:20px 16px}h1{font-size:21px}.lesson{padding:20px}.tag{display:none}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
-button:disabled{cursor:default;opacity:.45}.peel-controls{padding:18px 22px;margin-top:14px;border-top:1px solid #dce3ee;background:#f8faff}.peel-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.peel-actions button:first-child{background:#2559da;color:white;border-color:#2559da}.peel-controls label{font-size:14px;display:block;margin-bottom:8px}.peel-controls input{width:100%;accent-color:#2559da}.peel-status{font-size:14px;line-height:1.7;margin:10px 0 0;color:#40516a}.face-totals{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.face-totals span{padding:8px 11px;background:white;border:1px solid #dce3ee;border-radius:9px;font-size:15px}.viewhead{flex-wrap:wrap}.formula{overflow-wrap:anywhere}
-header{max-width:none;padding:8px 14px;gap:9px}header .mark{font-size:18px;padding:3px 9px;border-radius:8px}h1{font-size:18px}header p{display:none}#fullscreen{margin-left:auto;white-space:nowrap;font-size:14px;padding:7px 12px;min-height:34px}#fullscreenStatus{font-size:14px}#fullscreenStatus:empty{display:none}main{max-width:none;padding:0 10px 8px}.solids{gap:6px;margin-bottom:7px}.solids button{padding:6px 12px;min-height:34px;font-size:14px}.solids small{display:none}.layout{gap:8px;grid-template-columns:minmax(0,1fr) 290px;align-items:start}.viewer,.lesson{border-radius:10px}.viewer{position:relative;display:flex;flex-direction:column;height:calc(100dvh - 100px);min-height:440px}.viewhead{padding:7px 12px;flex:0 0 auto}.viewhead strong{font-size:15px}.tag{font-size:13px}canvas{flex:1 1 auto;min-height:240px;height:0;width:100%}.hint{font-size:13px;margin:0 10px 5px}.legend{padding:0 10px 5px;gap:12px;font-size:13px}.controls{padding:0 10px 7px;gap:5px}.controls button,.peel-actions button{min-height:30px;padding:5px 9px;font-size:13px;border-radius:7px}.peel-controls{margin:0;padding:7px 10px;display:grid;grid-template-columns:auto minmax(100px,1fr);align-items:center;gap:5px 12px}.peel-actions{margin:0;gap:5px}.peel-controls label{display:none}.peel-controls input{margin:0}.peel-status{margin:0;font-size:13px;line-height:1.4}.face-totals{margin:0;justify-content:flex-end;gap:5px}.face-totals span{padding:3px 6px;font-size:13px;border-radius:5px}.peel-controls>.note{display:none}.lesson{padding:12px;max-height:calc(100dvh - 100px);overflow:auto}.tabs{gap:5px}.tabs button{padding:6px;min-height:32px;border-radius:7px;font-size:14px}.eyebrow{margin:12px 0 5px;font-size:13px}h2{font-size:18px;line-height:1.4;margin-bottom:8px}.explain{font-size:14px;line-height:1.65;margin:8px 0}.formula{padding:10px;font-size:18px;margin:10px 0}.note{font-size:13px;line-height:1.6;margin:8px 0}.stepper{margin-top:10px;gap:5px}.stepper button{padding:6px 4px;font-size:13px;min-height:32px}.count{margin-top:10px;padding-top:10px}.count label{font-size:13px;line-height:1.5}.range{gap:5px;font-size:13px}.summary{gap:5px;margin-top:10px}.stat{padding:5px;border-radius:7px}.stat span{font-size:13px}.stat strong{font-size:22px;margin:0}.verify{margin-top:7px;padding:6px 10px;border-radius:7px;font-size:13px}.footer{margin-top:5px;font-size:13px;line-height:1.5}html:fullscreen{background:#f3f6fb;overflow:auto}body.screen-expanded{position:fixed;inset:0;overflow:auto;z-index:9999;background:#f3f6fb}@media(min-width:1400px){.layout{grid-template-columns:minmax(0,1fr) 310px}}@media(max-width:650px){.layout{grid-template-columns:1fr}.viewer{height:70dvh;min-height:420px}.lesson{max-height:none}.peel-controls{grid-template-columns:1fr}.face-totals{justify-content:flex-start}header{flex-wrap:wrap}h1{font-size:16px}.tag{display:none}}
-.solids{grid-template-columns:repeat(5,minmax(0,1fr))}.solids button{white-space:normal}.viewer{height:calc(100dvh - 140px)}.lesson{max-height:calc(100dvh - 140px)}@media(max-width:850px){.solids{grid-template-columns:repeat(4,minmax(0,1fr))}}@media(max-width:650px){.solids{grid-template-columns:repeat(2,minmax(0,1fr))}.viewer{height:70dvh}.lesson{max-height:none}}#buildGuide{border:1px solid #b8ccec;border-radius:8px;background:#f0f5ff;padding:9px;margin-bottom:10px}#buildGuide[hidden]{display:none}#buildGuide summary{cursor:pointer;font-size:14px;font-weight:bold}#buildGuide ol{padding-left:21px;font-size:14px;line-height:1.65}#buildGuide li{margin-bottom:7px}#buildGuide label{font-size:13px}#cutDepth{width:100%;accent-color:#2559da}.build-actions{display:flex;gap:4px}.build-actions button{padding:5px;min-height:30px;font-size:13px;flex:1}#darkMode{margin-left:auto;white-space:nowrap;font-size:14px;padding:7px 12px;min-height:34px}#fullscreen{margin-left:0}html[data-theme="dark"]{color-scheme:dark;background:#101827}html[data-theme="dark"] body,html[data-theme="dark"] body.screen-expanded{background:#101827;color:#e1e9f5}html[data-theme="dark"] button{background:#26364e;color:#e1e9f5;border-color:#485c78}html[data-theme="dark"] button:hover{background:#344b6b}html[data-theme="dark"] button.active,html[data-theme="dark"] .peel-actions button:first-child{background:#376dea;color:white}html[data-theme="dark"] .viewer,html[data-theme="dark"] .lesson,html[data-theme="dark"] .verify{background:#19263a;border-color:#3b4e68}html[data-theme="dark"] canvas{background:radial-gradient(ellipse at center,#263b59,#19263a 75%)}html[data-theme="dark"] .peel-controls,html[data-theme="dark"] #buildGuide{background:#1d2e46;border-color:#485c78}html[data-theme="dark"] .formula{background:#253b60;border-color:#77a7ff;color:#edf4ff}html[data-theme="dark"] .stat,html[data-theme="dark"] .face-totals span{background:#273951;border-color:#485c78}html[data-theme="dark"] .hint,html[data-theme="dark"] .tag,html[data-theme="dark"] .note,html[data-theme="dark"] .footer,html[data-theme="dark"] .verify span,html[data-theme="dark"] .stat span,html[data-theme="dark"] .peel-status,html[data-theme="dark"] .explain{color:#c1cfe2}html[data-theme="dark"] .eyebrow{color:#9bbeff}html[data-theme="dark"] .count{border-color:#485c78}html[data-theme="dark"] button:disabled{opacity:.55}#netPanel{background:#f0f5ff;border:1px solid #b8ccec;border-radius:8px;padding:10px;margin-bottom:10px}#netPanel[hidden]{display:none}.net-actions{display:flex;gap:5px;margin:8px 0}.net-actions button{padding:6px;min-height:32px;font-size:13px;flex:1}#netPanel label{font-size:13px;display:block;margin-top:7px}#netBase{width:100%;font:inherit;font-size:14px;padding:6px;border:1px solid #a8bad4;border-radius:6px;background:white;color:#18283f}#netFold{width:100%;accent-color:#7651c9}#netReference summary{font-size:13px;cursor:pointer}#netReference svg{width:100%;max-height:200px}html[data-theme="dark"] #netPanel{background:#1d2e46;border-color:#485c78}html[data-theme="dark"] #netBase{background:#26364e;color:#e1e9f5;border-color:#485c78}.solids{grid-template-columns:repeat(4,minmax(0,1fr))}.viewer{height:calc(100dvh - 195px)}.lesson{max-height:calc(100dvh - 195px)}@media(min-width:1200px){.solids{grid-template-columns:repeat(6,minmax(0,1fr))}.viewer{height:calc(100dvh - 150px)}.lesson{max-height:calc(100dvh - 150px)}}@media(max-width:650px){.solids{grid-template-columns:repeat(3,minmax(0,1fr))}.viewer{height:70dvh}.lesson{max-height:none}}.build-actions{flex-wrap:wrap}.build-actions button{flex:1 1 42%}@media(min-width:851px){.solids{grid-template-columns:repeat(6,minmax(0,1fr))}.solids button{padding:6px 8px}.viewer{height:calc(100dvh - 165px)}.lesson{max-height:calc(100dvh - 165px)}}</style></head><body><header><div class="mark" aria-hidden="true">◇</div><div><h1>立体のかぞえ方研究室</h1><p>回して発見。つながりから数えよう。</p></div><button id="darkMode" aria-pressed="false">ダークモード ON</button><button id="fullscreen" aria-pressed="false">全画面表示 ON</button><span id="fullscreenStatus" role="status"></span></header><main><nav class="solids" aria-label="立体を選ぶ"><button data-solid="3">正四面体</button><button data-solid="4">正六面体</button><button data-solid="5">正八面体</button><button data-solid="6">正十二面体</button><button data-solid="7">正二十面体</button><button data-solid="8">画像の三角すい・底面を選ぶ</button><button data-solid="9">正四面体を切る</button><button data-solid="1">正六面体を切る</button><button data-solid="10">正八面体を切る</button><button data-solid="11">正十二面体を切る</button><button data-solid="2">正二十面体を切る</button><button data-solid="0">正三角形の十六面体</button></nav><div class="layout"><section class="viewer" aria-label="立体の観察"><div class="viewhead"><strong id="shapeTitle"></strong><span class="tag">ドラッグして360°観察</span></div><canvas id="view" tabindex="0" aria-label="立体。ドラッグまたは矢印キーで回転できます"></canvas><p class="hint" id="viewHint">裏側も回して見てみよう。矢印キーでも回せるぞ。</p><div class="legend" id="legend"></div><div class="controls"><button id="rotate" aria-pressed="false">自動で回す</button><button id="reset">向きを戻す</button><button id="ghost" aria-pressed="false">裏側の線を見る</button></div><div class="peel-controls"><div class="peel-actions"><button id="peelAll">面をはがして並べる</button><button id="assemble">立体に戻す</button></div><label for="peel">立体から平らな面へ：つまみで途中を見よう</label><input id="peel" type="range" min="0" max="100" value="0" aria-label="面をはがす進み具合"><p class="peel-status" id="peelStatus" aria-live="polite"></p><div class="face-totals" id="faceTotals"></div><p class="note">面を形ごとに分けて並べるぞ。つながった展開図ではなく、1枚ずつ切り離した面だ。</p></div></section><section class="lesson"><section id="netPanel" hidden><strong>展開図と組み立て</strong><div class="net-actions"><button id="netOpen">展開図を見る</button><button id="netClose">通常の立体</button></div><label for="netBase">固定する底面</label><select id="netBase" aria-label="固定する底面"></select><p id="baseNote" class="note"></p><div class="net-actions"><button id="netPlay">組み立てる</button><button id="netUnfold">開く</button></div><label for="netFold">展開図 → 完成</label><input id="netFold" type="range" min="0" max="100" value="0" aria-label="組み立てる進み具合"><p id="netStatus" role="status" class="note"></p><p id="netNote" class="note"></p><details id="netReference"><summary>元の図と、底面を変える意味</summary><svg viewBox="-0.14 -0.14 1.3 1.3" role="img" aria-label="正方形ABCD、辺BCの中点E、辺CDの中点F。中央AEFとABE、ECF、ADFの4つの三角形。B、C、Dが重なる。"><path d="M0 0 L0 1 L.5 1Z" fill="#f6c777"/><path d="M.5 1L1 1L1 .5Z" fill="#83d6bf"/><path d="M0 0L1 0L1 .5Z" fill="#f1a8bc"/><path d="M0 0L.5 1L1 .5Z" fill="#87b0f7"/><path d="M0 0H1V1H0Z" fill="none" stroke="currentColor" stroke-width=".012"/><path d="M0 0L.5 1L1 .5Z" fill="none" stroke="currentColor" stroke-width=".009" stroke-dasharray=".025 .025"/><g fill="currentColor" font-size=".085"><text x="-.07" y="-.03">A</text><text x="-.07" y="1.1">B</text><text x="1.02" y="1.1">C</text><text x="1.02" y="-.03">D</text><text x=".47" y="1.1">E</text><text x="1.02" y=".52">F</text></g></svg><p class="note">底面を替えるのは、同じ立体の置き方を替えること。面4枚・辺6本・頂点4個も、体積も変わらない。底面の面積と、その面に垂直な高さは変わるぞ。</p><p class="note">外枠を正方形、E・Fを中点として作図したぞ。</p></details></section><details id="buildGuide" hidden><summary>作り方を見る：頂点を切り取る</summary><p id="buildIntro" class="note"></p><ol id="buildSteps"></ol><label for="cutDepth">切る深さ：<output id="cutLabel"></output></label><input id="cutDepth" type="range" min="0" max="100" step="0.1" value="100" aria-label="頂点を切る深さ"><div class="build-actions"><button id="cutStart">元の立体</button><button id="cutMiddle">切る途中</button><button id="cutFinish">辺がそろう位置</button><button id="cutTouch">切り口が接するまで</button></div><p id="cutMessage" class="note" aria-live="polite"></p></details><div class="tabs" aria-label="数えるもの"><button data-mode="0" class="active">面</button><button data-mode="1">辺</button><button data-mode="2">頂点</button></div><div aria-live="polite"><p class="eyebrow" id="stepLabel"></p><h2 id="lessonTitle"></h2><p class="explain" id="explain"></p><div class="formula" id="formula"></div><p class="note" id="note"></p></div><div class="stepper"><button id="prev">← 前の説明</button><button id="next">次の説明 →</button></div><div class="count"><label for="count">図で確かめる：色のついた部分を増やそう</label><div class="range"><input id="count" type="range" min="0" value="0"><output id="counter"></output></div></div><div class="summary" id="summary"></div></section></div><div class="verify"><b id="euler"></b><span>穴のない凸多面体で成り立つ、オイラーの公式</span></div><p class="footer" id="footnote"></p></main><script src="app.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="ja" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>立体学習ポータル | 3D幾何学・立体図形コレクション</title>
+  <style>
+    :root {
+      --bg-base: #f0f4f9;
+      --bg-surface: #ffffff;
+      --bg-card: #ffffff;
+      --bg-nav: rgba(255, 255, 255, 0.88);
+      --border: #dbe4ee;
+      --border-hover: #b9cadc;
+      --text-main: #132238;
+      --text-sub: #556882;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --accent-soft: rgba(37, 99, 235, 0.1);
+      --card-shadow: 0 10px 30px -8px rgba(19, 34, 56, 0.08), 0 2px 8px -2px rgba(19, 34, 56, 0.04);
+      --card-shadow-hover: 0 20px 40px -12px rgba(37, 99, 235, 0.18), 0 4px 14px -3px rgba(19, 34, 56, 0.08);
+    }
+
+    [data-theme="dark"] {
+      --bg-base: #0c1421;
+      --bg-surface: #142033;
+      --bg-card: #18263c;
+      --bg-nav: rgba(20, 32, 51, 0.88);
+      --border: #293d5a;
+      --border-hover: #3d5a82;
+      --text-main: #e8f0fe;
+      --text-sub: #94a8c4;
+      --accent: #3b82f6;
+      --accent-hover: #60a5fa;
+      --accent-soft: rgba(59, 130, 246, 0.16);
+      --card-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.45);
+      --card-shadow-hover: 0 20px 45px -10px rgba(59, 130, 246, 0.28);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", "BIZ UDPGothic", Meiryo, sans-serif;
+      background: var(--bg-base);
+      color: var(--text-main);
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    /* Container for the entire screen */
+    .portal-shell {
+      display: flex;
+      flex-direction: column;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Top Navigation Bar */
+    header.portal-nav {
+      flex: 0 0 54px;
+      height: 54px;
+      background: var(--bg-nav);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      z-index: 50;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+    }
+
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      font-weight: 800;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+    }
+
+    .brand-text h1 {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+      line-height: 1.2;
+    }
+
+    .brand-text p {
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+
+    /* App Tab Switcher in Navbar */
+    .nav-tabs {
+      display: flex;
+      background: var(--accent-soft);
+      padding: 3px;
+      border-radius: 10px;
+      gap: 3px;
+    }
+
+    .nav-tab-btn {
+      border: none;
+      background: transparent;
+      color: var(--text-sub);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 7px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.18s ease;
+    }
+
+    .nav-tab-btn:hover {
+      color: var(--text-main);
+    }
+
+    .nav-tab-btn.active {
+      background: var(--bg-surface);
+      color: var(--accent);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      height: 34px;
+      padding: 0 12px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .icon-btn:hover {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .icon-btn svg {
+      width: 15px;
+      height: 15px;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+
+    /* Main Content Area */
+    .portal-main {
+      flex: 1 1 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* View: Hub / Launcher (Grid of Cards) */
+    #hubView {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 24px 32px;
+      box-sizing: border-box;
+      background: radial-gradient(circle at 50% 20%, var(--bg-surface) 0%, var(--bg-base) 100%);
+    }
+
+    .hub-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .hub-header .badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      margin-bottom: 10px;
+      border: 1px solid rgba(37, 99, 235, 0.2);
+    }
+
+    .hub-header h2 {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.4px;
+      color: var(--text-main);
+      margin-bottom: 8px;
+    }
+
+    .hub-header p {
+      font-size: 14px;
+      color: var(--text-sub);
+    }
+
+    .app-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(320px, 460px));
+      gap: 24px;
+      max-width: 960px;
+      width: 100%;
+    }
+
+    .app-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: var(--card-shadow);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+    }
+
+    .app-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #3b82f6, #6366f1);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .app-card.card-kirikuchi::before {
+      background: linear-gradient(90deg, #e11d48, #f59e0b);
+    }
+
+    .app-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--card-shadow-hover);
+      border-color: var(--border-hover);
+    }
+
+    .app-card:hover::before {
+      opacity: 1;
+    }
+
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+
+    .card-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .card-kazoe .card-icon {
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.15), rgba(99, 102, 241, 0.2));
+      color: #2563eb;
+      border: 1px solid rgba(37, 99, 235, 0.25);
+    }
+
+    .card-kirikuchi .card-icon {
+      background: linear-gradient(135deg, rgba(225, 29, 72, 0.15), rgba(245, 158, 11, 0.2));
+      color: #e11d48;
+      border: 1px solid rgba(225, 29, 72, 0.25);
+    }
+
+    .card-meta {
+      flex: 1;
+    }
+
+    .card-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+      margin-bottom: 5px;
+    }
+
+    .card-kazoe .card-badge {
+      background: rgba(37, 99, 235, 0.1);
+      color: #2563eb;
+    }
+
+    .card-kirikuchi .card-badge {
+      background: rgba(225, 29, 72, 0.1);
+      color: #e11d48;
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-main);
+      letter-spacing: -0.2px;
+      line-height: 1.3;
+    }
+
+    .card-desc {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-sub);
+      margin-bottom: 18px;
+      flex-grow: 1;
+    }
+
+    .card-features {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 20px;
+      padding-top: 12px;
+      border-top: 1px dashed var(--border);
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-main);
+    }
+
+    .feature-item svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+      stroke: #10b981;
+      stroke-width: 2.4;
+      fill: none;
+    }
+
+    .card-btn {
+      width: 100%;
+      height: 42px;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      color: #ffffff;
+      transition: background 0.15s, transform 0.15s;
+    }
+
+    .card-kazoe .card-btn {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+
+    .card-kazoe .card-btn:hover {
+      background: linear-gradient(135deg, #1d4ed8, #1e40af);
+    }
+
+    .card-kirikuchi .card-btn {
+      background: linear-gradient(135deg, #e11d48, #be123c);
+      box-shadow: 0 4px 12px rgba(225, 29, 72, 0.3);
+    }
+
+    .card-kirikuchi .card-btn:hover {
+      background: linear-gradient(135deg, #be123c, #9f1239);
+    }
+
+    /* Views: iframes for each application */
+    .app-frame-container {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      display: none;
+    }
+
+    .app-frame-container.active {
+      display: block;
+    }
+
+    .app-frame-container iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .app-cards-grid {
+        grid-template-columns: 1fr;
+        max-width: 440px;
+      }
+      .brand-text p {
+        display: none;
+      }
+      .hub-header h2 {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="portal-shell">
+    <!-- Header Navigation -->
+    <header class="portal-nav">
+      <div class="brand-section" id="navBrand" title="ホーム（アプリ選択）へ戻る">
+        <div class="brand-logo">立</div>
+        <div class="brand-text">
+          <h1>立体学習ポータル</h1>
+          <p>幾何学・多面体・切断研究室</p>
+        </div>
+      </div>
+
+      <!-- App Switcher Tabs -->
+      <nav class="nav-tabs" aria-label="アプリ切り替え">
+        <button id="tabHub" class="nav-tab-btn active" type="button">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          ホーム (選択)
+        </button>
+        <button id="tabKazoe" class="nav-tab-btn" type="button">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          立体のかぞえ方研究室
+        </button>
+        <button id="tabKirikuchi" class="nav-tab-btn" type="button">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          立方体 切断シミュレーター
+        </button>
+      </nav>
+
+      <!-- Right Actions: Theme Toggle & Fullscreen -->
+      <div class="nav-actions">
+        <button id="themeToggleBtn" class="icon-btn" type="button" title="ダークモード切り替え">
+          <svg id="themeIconSun" viewBox="0 0 24 24" style="display:none;"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          <svg id="themeIconMoon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <span id="themeBtnLabel">ダーク</span>
+        </button>
+        <button id="fullscreenBtn" class="icon-btn" type="button" title="全画面表示切り替え">
+          <svg id="fsExpandIcon" viewBox="0 0 24 24"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+          <svg id="fsCompressIcon" viewBox="0 0 24 24" style="display:none;"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+          <span id="fsBtnLabel">全画面</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="portal-main">
+      <!-- 1. Hub / Launcher Selection Screen -->
+      <section id="hubView">
+        <div class="hub-header">
+          <span class="badge">GEOMETRY APPS COLLECTION</span>
+          <h2>学習する立体アプリを選択してください</h2>
+          <p>面・辺・頂点の規則性を学ぶアプリと、立方体の3点切断シミュレーターを自由に行き来できます</p>
+        </div>
+
+        <div class="app-cards-grid">
+          <!-- Card 1: 立体のかぞえ方研究室 (from github.com/matsukio1011/rittai) -->
+          <article class="app-card card-kazoe" id="launchKazoeBtn">
+            <div class="card-top">
+              <div class="card-icon">◇</div>
+              <div class="card-meta">
+                <span class="card-badge">正多面体・展開図・面の分解</span>
+                <h3 class="card-title">立体のかぞえ方研究室</h3>
+              </div>
+            </div>
+            <p class="card-desc">
+              正多面体（正四・六・八・十二・二十面体）や十六面体、展開図から組み立てる三角すいなどを360°回転しながら、面・辺・頂点の数え方やオイラーの公式を学びます。
+            </p>
+            <div class="card-features">
+              <div class="feature-item">
+                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>5種類の正多面体 ＆ 展開図の組み立てシミュレーション</span>
+              </div>
+              <div class="feature-item">
+                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>面をバラバラに剥がして並べる分解機能</span>
+              </div>
+              <div class="feature-item">
+                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>各頂点の切断深さ調整＆オイラーの公式（V - E + F = 2）検証</span>
+              </div>
+            </div>
+            <button class="card-btn" type="button">
+              アプリを起動する
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </article>
+
+          <!-- Card 2: 立方体の切断シミュレーター (Current App) -->
+          <article class="app-card card-kirikuchi" id="launchKirikuchiBtn">
+            <div class="card-top">
+              <div class="card-icon">⬢</div>
+              <div class="card-meta">
+                <span class="card-badge">3点指定・断面・見取り図</span>
+                <h3 class="card-title">立方体の切断シミュレーター</h3>
+              </div>
+            </div>
+            <p class="card-desc">
+              立方体の辺上の任意の3点（P・Q・R）を直感的にドラッグ＆指定し、できる切り口多角形（三角形〜正六角形）をリアルタイムに計算・可視化します。
+            </p>
+            <div class="card-features">
+              <div class="feature-item">
+                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>3D自由回転 ＆ 数学教材に忠実な「見取り図（斜投影）」表示</span>
+              </div>
+              <div class="feature-item">
+                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>辺クリックによる補助線（延長線）＆切断面交点の作図補助</span>
+              </div>
+              <div class="feature-item">
+                <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>切り口の実形（正面2D図）・断面積・周長・代表的プリセット完備</span>
+              </div>
+            </div>
+            <button class="card-btn" type="button">
+              アプリを起動する
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </article>
+        </div>
+      </section>
+
+      <!-- 2. Embedded App 1: 立体のかぞえ方研究室 -->
+      <div id="frameKazoeContainer" class="app-frame-container">
+        <iframe id="frameKazoe" src="apps/kazoe/index.html" title="立体のかぞえ方研究室"></iframe>
+      </div>
+
+      <!-- 3. Embedded App 2: 立方体の切断シミュレーター -->
+      <div id="frameKirikuchiContainer" class="app-frame-container">
+        <iframe id="frameKirikuchi" src="apps/kirikuchi/index.html" title="立方体の切断シミュレーター"></iframe>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // State
+    let currentApp = 'hub'; // 'hub' | 'kazoe' | 'kirikuchi'
+
+    // DOM Elements
+    const tabHub = document.getElementById('tabHub');
+    const tabKazoe = document.getElementById('tabKazoe');
+    const tabKirikuchi = document.getElementById('tabKirikuchi');
+    const navBrand = document.getElementById('navBrand');
+
+    const hubView = document.getElementById('hubView');
+    const frameKazoeContainer = document.getElementById('frameKazoeContainer');
+    const frameKirikuchiContainer = document.getElementById('frameKirikuchiContainer');
+
+    const launchKazoeBtn = document.getElementById('launchKazoeBtn');
+    const launchKirikuchiBtn = document.getElementById('launchKirikuchiBtn');
+
+    // Switch View function
+    function switchView(target) {
+      currentApp = target;
+
+      // Update Tabs UI
+      tabHub.classList.toggle('active', target === 'hub');
+      tabKazoe.classList.toggle('active', target === 'kazoe');
+      tabKirikuchi.classList.toggle('active', target === 'kirikuchi');
+
+      // Update View Visibility
+      hubView.style.display = target === 'hub' ? 'flex' : 'none';
+      frameKazoeContainer.classList.toggle('active', target === 'kazoe');
+      frameKirikuchiContainer.classList.toggle('active', target === 'kirikuchi');
+
+      // Sync theme with child iframe if active
+      syncThemeToFrames();
+    }
+
+    // Event Listeners for switching
+    tabHub.addEventListener('click', () => switchView('hub'));
+    navBrand.addEventListener('click', () => switchView('hub'));
+    tabKazoe.addEventListener('click', () => switchView('kazoe'));
+    tabKirikuchi.addEventListener('click', () => switchView('kirikuchi'));
+
+    launchKazoeBtn.addEventListener('click', () => switchView('kazoe'));
+    launchKirikuchiBtn.addEventListener('click', () => switchView('kirikuchi'));
+
+    // Dark Mode Toggle
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const themeIconSun = document.getElementById('themeIconSun');
+    const themeIconMoon = document.getElementById('themeIconMoon');
+    const themeBtnLabel = document.getElementById('themeBtnLabel');
+
+    function syncThemeToFrames() {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      // Sync to kazoe iframe
+      const kazoeFrame = document.getElementById('frameKazoe');
+      if (kazoeFrame && kazoeFrame.contentDocument) {
+        kazoeFrame.contentDocument.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+      }
+      // Sync to kirikuchi iframe
+      const kirikuchiFrame = document.getElementById('frameKirikuchi');
+      if (kirikuchiFrame && kirikuchiFrame.contentDocument) {
+        kirikuchiFrame.contentDocument.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+      }
+    }
+
+    themeToggleBtn.addEventListener('click', () => {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const nextTheme = isDark ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', nextTheme);
+
+      themeIconSun.style.display = nextTheme === 'dark' ? 'block' : 'none';
+      themeIconMoon.style.display = nextTheme === 'dark' ? 'none' : 'block';
+      themeBtnLabel.textContent = nextTheme === 'dark' ? 'ライト' : 'ダーク';
+
+      syncThemeToFrames();
+    });
+
+    // Make sure theme syncs when iframes finish loading
+    document.getElementById('frameKazoe').addEventListener('load', syncThemeToFrames);
+    document.getElementById('frameKirikuchi').addEventListener('load', syncThemeToFrames);
+
+    // Fullscreen Toggle
+    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const fsExpandIcon = document.getElementById('fsExpandIcon');
+    const fsCompressIcon = document.getElementById('fsCompressIcon');
+    const fsBtnLabel = document.getElementById('fsBtnLabel');
+
+    function updateFullscreenButtonUI() {
+      const isFs = Boolean(document.fullscreenElement);
+      fsExpandIcon.style.display = isFs ? 'none' : 'block';
+      fsCompressIcon.style.display = isFs ? 'block' : 'none';
+      fsBtnLabel.textContent = isFs ? '全画面終了' : '全画面';
+    }
+
+    fullscreenBtn.addEventListener('click', async () => {
+      try {
+        if (!document.fullscreenElement) {
+          await document.documentElement.requestFullscreen();
+        } else {
+          await document.exitFullscreen();
+        }
+      } catch (err) {
+        console.warn('Fullscreen toggle error:', err);
+      }
+    });
+
+    document.addEventListener('fullscreenchange', updateFullscreenButtonUI);
+  </script>
+</body>
+</html>
