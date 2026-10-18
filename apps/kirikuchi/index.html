@@ -155,6 +155,24 @@
       box-shadow: 0 2px 6px rgba(59, 130, 246, 0.35);
     }
 
+    .mode-btn.draw-active {
+      background: #e11d48 !important;
+      color: #ffffff !important;
+      box-shadow: 0 2px 6px rgba(225, 29, 72, 0.35) !important;
+    }
+
+    .header-modes {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toggle-chip.active-answer {
+      background: #10b981 !important;
+      border-color: #10b981 !important;
+      color: #ffffff !important;
+    }
+
     /* Header Right Controls */
     .header-actions {
       display: flex;
@@ -604,22 +622,42 @@
         </div>
       </div>
 
-      <!-- Mode Switcher: 3D vs 見取り図 -->
-      <div class="mode-switcher" role="tablist" aria-label="表示モード切替">
-        <button id="mode3dBtn" class="mode-btn active" type="button">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-            <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/>
-          </svg>
-          3D表示（自由回転）
-        </button>
-        <button id="modeMitorizuBtn" class="mode-btn" type="button">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-            <rect x="3" y="7" width="13" height="13" rx="1"/>
-            <path d="M8 7l5-4h8v13l-5 4"/>
-            <line x1="16" y1="7" x2="21" y2="3"/>
-          </svg>
-          見取り図表示（斜投影）
-        </button>
+      <div class="header-modes">
+        <!-- 投影モード切替: 3D vs 見取り図 -->
+        <div class="mode-switcher" role="tablist" aria-label="投影モード切替">
+          <button id="mode3dBtn" class="mode-btn active" type="button" title="3D空間で自由に回転">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/>
+            </svg>
+            3D表示
+          </button>
+          <button id="modeMitorizuBtn" class="mode-btn" type="button" title="教材・教科書に準拠した斜投影見取り図">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <rect x="3" y="7" width="13" height="13" rx="1"/>
+              <path d="M8 7l5-4h8v13l-5 4"/>
+              <line x1="16" y1="7" x2="21" y2="3"/>
+            </svg>
+            見取り図
+          </button>
+        </div>
+
+        <!-- 動作モード切替: 通常表示 vs 切り口を書く -->
+        <div class="mode-switcher" role="tablist" aria-label="動作モード切替">
+          <button id="modeAutoBtn" class="mode-btn active" type="button" title="切り口を自動で計算・表示">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            </svg>
+            通常表示
+          </button>
+          <button id="modeDrawBtn" class="mode-btn" type="button" title="切り口を表示せず3点から自分で線分・補助線を作図するモード">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M12 20h9"/>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+            </svg>
+            切り口を書く
+          </button>
+        </div>
       </div>
 
       <!-- Right Utility Buttons -->
@@ -699,8 +737,30 @@
         <!-- Bottom-Left Display Toggles -->
         <div class="viewport-bottom-left">
           <button id="toggleVerticesBtn" class="toggle-chip active" type="button">頂点ラベル (A〜H)</button>
-          <button id="toggleSectionFillBtn" class="toggle-chip active" type="button">切り口の塗りつぶし</button>
-          <button id="toggleIntersectionsBtn" class="toggle-chip active" type="button">全交点の表示</button>
+
+          <!-- 通常（自動表示）モード時のボタン -->
+          <span id="autoControlsGroup" style="display:inline-flex; gap:8px;">
+            <button id="toggleSectionFillBtn" class="toggle-chip active" type="button">切り口の塗りつぶし</button>
+            <button id="toggleIntersectionsBtn" class="toggle-chip active" type="button">全交点の表示</button>
+          </span>
+
+          <!-- 切り口を書くモード時のボタン -->
+          <span id="drawControlsGroup" style="display:none; gap:8px; align-items:center;">
+            <span id="drawSegmentCountBadge" class="toggle-chip" style="cursor:default; background:var(--bg-card); font-weight:700; color:var(--text-primary);">線分: 0本 ／ 交点: 0個</span>
+            <button id="drawUndoBtn" class="toggle-chip" type="button" title="直前に引いた線分を1つ戻す">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5v0a5.5 5.5 0 0 1-5.5 5.5H11"/></svg>
+              1手戻す
+            </button>
+            <button id="drawClearBtn" class="toggle-chip" type="button" title="作図した線分と補助線をすべて消去">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              作図リセット
+            </button>
+            <button id="drawCheckAnswerBtn" class="toggle-chip" type="button" title="正解の切り口を表示して答え合わせ">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
+              <span id="drawCheckAnswerLabel">答え合わせ</span>
+            </button>
+          </span>
+
           <button id="clearExtensionsBtn" class="toggle-chip" type="button" style="display:none;">延長線をすべて消去</button>
         </div>
 
@@ -719,7 +779,7 @@
         <!-- 3 Points Controls -->
         <div class="panel-section">
           <div class="section-header">
-            <span class="section-title">辺上の3点指定（図上でドラッグ可）</span>
+            <span id="pointsSectionTitle" class="section-title">辺上の3点指定（図上でドラッグ可）</span>
           </div>
           <div id="pointCardsContainer" class="point-cards"></div>
         </div>
@@ -765,8 +825,8 @@
           </div>
         </div>
 
-        <!-- Section Summary & Properties -->
-        <div class="panel-section">
+        <!-- Section Summary & Properties (通常モード時) -->
+        <div id="autoStatsSection" class="panel-section">
           <div class="section-header">
             <span class="section-title">切り口のデータ（1辺 = 10cm 換算）</span>
           </div>
@@ -788,6 +848,41 @@
             <div id="explanationText" class="step-guide">
               同じ頂点Bに集まる3辺の中点を通る平面で切断すると、3辺の長さがすべて等しい正三角形になります。辺をクリックすると延長線を表示できます。
             </div>
+          </div>
+        </div>
+
+        <!-- Draw Mode Section (切り口を書くモード時) -->
+        <div id="drawModeSection" class="panel-section" style="display:none;">
+          <div class="section-header">
+            <span class="section-title">② 切り口・補助線の作図</span>
+            <span id="drawChallengeBadge" class="preset-tag" style="background:var(--accent-soft); color:var(--accent);">作図中</span>
+          </div>
+          <div class="info-card">
+            <div class="stats-grid">
+              <div class="stat-item">
+                <div class="stat-label">引いた線分</div>
+                <div id="drawStatLines" class="stat-value">0 本</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-label">延長補助線</div>
+                <div id="drawStatExts" class="stat-value">0 本</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-label">交点 / 判定</div>
+                <div id="drawStatResult" class="stat-value" style="font-size:0.78rem;">0 個</div>
+              </div>
+            </div>
+            <div id="drawGuideText" class="step-guide" style="line-height:1.45;">
+              <strong>【作図手順】</strong><br>
+              ① 上のパネルや図上ドラッグで<strong>3点(P・Q・R)を設定</strong><br>
+              ② <strong>2点をクリック</strong>して切り口の線分を引く<br>
+              ③ <strong>辺や線分をクリック</strong>で延長線の補助線を引く<br>
+              ④ <strong>延長線の交点・辺と延長線の交点</strong>も点として選択可
+            </div>
+            <button id="sideCheckAnswerBtn" class="icon-btn" type="button" style="width:100%; justify-content:center; background:var(--accent); color:#fff; border:none; margin-top:2px; height:32px;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
+              <span id="sideCheckAnswerLabel">答え合わせ（正解を表示）</span>
+            </button>
           </div>
         </div>
       </aside>
@@ -849,6 +944,7 @@
 
     // アプリの状態
     const state = {
+      appMode: 'auto', // 'auto' (通常表示) | 'draw' (切り口を書くモード)
       viewMode: '3d', // '3d' | 'mitorizu'
       activePointIndex: 0, // 0: P, 1: Q, 2: R
       points: [
@@ -869,6 +965,13 @@
         showSectionFill: true,
         showIntersections: true,
       },
+      drawState: {
+        selectedPoint: null, // { id, name, pt3d, type }
+        drawnSegments: [],   // [ { id, pA, pB, pAId, pBId, onFaces, extended: boolean } ]
+        showAnswer: false,
+        rubberbandPos: null, // { x, y }
+        pendingPointAction: null, // { point, pointIndex, downX, downY, dragged }
+      },
       extendedCubeEdges: new Set(),  // クリックで選択された立方体の辺ID ('AB', 'EF', etc.)
       extendedSectionFaces: new Set(), // クリックで選択された切り口の辺 (faceId: 'TOP', 'FRONT', etc.)
       dragging: {
@@ -879,6 +982,8 @@
       },
       hoverPointIndex: -1,
       hoverEdge: null, // { type: 'cube' | 'section', id: string }
+      hoverDrawPoint: null,
+      hoverDrawnSegment: null,
     };
 
     const PRESETS = {
@@ -956,6 +1061,24 @@
     const pointCardsContainer = document.getElementById('pointCardsContainer');
     const clearExtensionsBtn = document.getElementById('clearExtensionsBtn');
     const mitorizuViewBar = document.getElementById('mitorizuViewBar');
+    const modeAutoBtn = document.getElementById('modeAutoBtn');
+    const modeDrawBtn = document.getElementById('modeDrawBtn');
+    const autoControlsGroup = document.getElementById('autoControlsGroup');
+    const drawControlsGroup = document.getElementById('drawControlsGroup');
+    const drawSegmentCountBadge = document.getElementById('drawSegmentCountBadge');
+    const drawUndoBtn = document.getElementById('drawUndoBtn');
+    const drawClearBtn = document.getElementById('drawClearBtn');
+    const drawCheckAnswerBtn = document.getElementById('drawCheckAnswerBtn');
+    const drawCheckAnswerLabel = document.getElementById('drawCheckAnswerLabel');
+    const pointsSectionTitle = document.getElementById('pointsSectionTitle');
+    const autoStatsSection = document.getElementById('autoStatsSection');
+    const drawModeSection = document.getElementById('drawModeSection');
+    const drawChallengeBadge = document.getElementById('drawChallengeBadge');
+    const drawStatLines = document.getElementById('drawStatLines');
+    const drawStatExts = document.getElementById('drawStatExts');
+    const drawStatResult = document.getElementById('drawStatResult');
+    const sideCheckAnswerBtn = document.getElementById('sideCheckAnswerBtn');
+    const sideCheckAnswerLabel = document.getElementById('sideCheckAnswerLabel');
 
     // Vector Math Helpers
     function vecSub(a, b) { return { x: a.x - b.x, y: a.y - b.y, z: a.z - b.z }; }
@@ -1227,6 +1350,293 @@
       };
     }
 
+    // 2点間線分が属する立方体の面ID配列を返す
+    function detectSegmentFaces(pA, pB) {
+      const eps = 1e-3;
+      const faces = [];
+      if (Math.abs(pA.y - 1) < eps && Math.abs(pB.y - 1) < eps) faces.push('TOP');
+      if (Math.abs(pA.y - 0) < eps && Math.abs(pB.y - 0) < eps) faces.push('BOTTOM');
+      if (Math.abs(pA.z - 1) < eps && Math.abs(pB.z - 1) < eps) faces.push('FRONT');
+      if (Math.abs(pA.z - 0) < eps && Math.abs(pB.z - 0) < eps) faces.push('BACK');
+      if (Math.abs(pA.x - 0) < eps && Math.abs(pB.x - 0) < eps) faces.push('LEFT');
+      if (Math.abs(pA.x - 1) < eps && Math.abs(pB.x - 1) < eps) faces.push('RIGHT');
+      return faces;
+    }
+
+    // 線分 pA -> pB を立方体 [0, 1]^3 でクリッピングし、内部区間 [t0, t1] と3D端点を返す
+    function clipSegmentToCube(pA, pB) {
+      const dx = pB.x - pA.x;
+      const dy = pB.y - pA.y;
+      const dz = pB.z - pA.z;
+      let t0 = 0.0;
+      let t1 = 1.0;
+      const eps = 1e-4;
+
+      const clip1D = (p, d) => {
+        if (Math.abs(d) < 1e-7) {
+          return p >= -eps && p <= 1 + eps;
+        }
+        const r1 = (0 - p) / d;
+        const r2 = (1 - p) / d;
+        const tEnter = Math.min(r1, r2);
+        const tLeave = Math.max(r1, r2);
+        if (tEnter > t0) t0 = tEnter;
+        if (tLeave < t1) t1 = tLeave;
+        return t0 <= t1 + eps;
+      };
+
+      if (!clip1D(pA.x, dx) || !clip1D(pA.y, dy) || !clip1D(pA.z, dz)) {
+        return null;
+      }
+      t0 = Math.max(0, Math.min(1, t0));
+      t1 = Math.max(0, Math.min(1, t1));
+      if (t1 - t0 < 1e-3) return null;
+
+      const cA = { x: pA.x + dx * t0, y: pA.y + dy * t0, z: pA.z + dz * t0 };
+      const cB = { x: pA.x + dx * t1, y: pA.y + dy * t1, z: pA.z + dz * t1 };
+      return { t0, t1, cA, cB, onFaces: detectSegmentFaces(cA, cB) };
+    }
+
+    // 3D空間の2直線 A1+t1*(B1-A1) と A2+t2*(B2-A2) の交点（同一平面上かつ非平行）を求める
+    function intersectLines3D(A1, B1, A2, B2) {
+      const d1 = vecSub(B1, A1);
+      const d2 = vecSub(B2, A2);
+      const len1 = vecLen(d1);
+      const len2 = vecLen(d2);
+      if (len1 < 1e-6 || len2 < 1e-6) return null;
+
+      const cross = vecCross(d1, d2);
+      const denom = vecDot(cross, cross);
+      if (denom < 1e-7 * len1 * len1 * len2 * len2) return null; // 平行または同一
+
+      const r = vecSub(A2, A1);
+      const t1 = vecDot(vecCross(r, d2), cross) / denom;
+      const t2 = vecDot(vecCross(r, d1), cross) / denom;
+
+      const Q1 = vecAdd(A1, vecScale(d1, t1));
+      const Q2 = vecAdd(A2, vecScale(d2, t2));
+      if (vecLen(vecSub(Q1, Q2)) > 3e-3) return null; // ねじれの位置
+
+      const pt3d = vecScale(vecAdd(Q1, Q2), 0.5);
+      const centerDist = vecLen(vecSub(pt3d, { x: 0.5, y: 0.5, z: 0.5 }));
+      if (centerDist > 3.8) return null; // 画面外遠方の交点は除外
+
+      return { pt3d, t1, t2 };
+    }
+
+    // 点が立方体 [0, 1]^3 の内部・表面上にあるか判定
+    function isPointOnOrInCube(pt, eps = 2e-3) {
+      return (
+        pt.x >= -eps && pt.x <= 1 + eps &&
+        pt.y >= -eps && pt.y <= 1 + eps &&
+        pt.z >= -eps && pt.z <= 1 + eps
+      );
+    }
+
+    // 作図モード用：選択可能な点・交点・延長線の描画範囲を計算
+    function computeDrawModeGeometry() {
+      const selectablePoints = [];
+      const intersectionPoints = [];
+      const eps = 4e-3;
+
+      const addSelectablePoint = (pt3d, name, type, colorKey = null) => {
+        for (const existing of selectablePoints) {
+          if (vecLen(vecSub(existing.pt3d, pt3d)) < eps) {
+            return existing;
+          }
+        }
+        const item = {
+          id: `${type}_${selectablePoints.length}`,
+          name,
+          pt3d,
+          type,
+          colorKey,
+        };
+        selectablePoints.push(item);
+        return item;
+      };
+
+      // 1. 辺上の3点 P, Q, R（最優先）
+      state.points.forEach((pt) => {
+        const p3d = getPointOnEdge3D(pt.edgeId, pt.t);
+        addSelectablePoint(p3d, pt.name, 'user', pt.colorKey);
+      });
+
+      // 各立方体辺の延長線描画範囲 (t=0..1 が元の辺)
+      const edgeExtBounds = {};
+      for (const edgeId of state.extendedCubeEdges) {
+        edgeExtBounds[edgeId] = { min: -1.25, max: 2.25 };
+      }
+
+      // 各ユーザー線分の延長線描画範囲 (t=0..1 が元の線分)
+      const segExtBounds = {};
+      for (const seg of state.drawState.drawnSegments) {
+        if (seg.extended) {
+          const len = Math.max(vecLen(vecSub(seg.pB, seg.pA)), 0.25);
+          const pad = 1.35 / len;
+          segExtBounds[seg.id] = { min: -pad, max: 1 + pad };
+        } else {
+          segExtBounds[seg.id] = { min: 0, max: 1 };
+        }
+      }
+
+      const registerIntersection = (pt3d, kind) => {
+        for (const existing of selectablePoints) {
+          if (vecLen(vecSub(existing.pt3d, pt3d)) < eps) {
+            return existing;
+          }
+        }
+        const idx = intersectionPoints.length + 1;
+        const item = addSelectablePoint(pt3d, `交点${idx}`, kind);
+        intersectionPoints.push(item);
+        return item;
+      };
+
+      // 2. ユーザーが引いた線分（またはその延長線） × 立方体の12辺（またはその延長線）の交点
+      for (const seg of state.drawState.drawnSegments) {
+        const segLen = Math.max(vecLen(vecSub(seg.pB, seg.pA)), 0.2);
+        const segSearchPad = 3.5 / segLen;
+        const sMin = seg.extended ? -segSearchPad : -1e-3;
+        const sMax = seg.extended ? 1 + segSearchPad : 1 + 1e-3;
+
+        for (const edge of EDGES) {
+          const A = VERTICES[edge.v1];
+          const B = VERTICES[edge.v2];
+          const edgeExtended = state.extendedCubeEdges.has(edge.id);
+          const eMin = edgeExtended ? -3.2 : -1e-3;
+          const eMax = edgeExtended ? 4.2 : 1 + 1e-3;
+
+          const hit = intersectLines3D(seg.pA, seg.pB, A, B);
+          if (!hit) continue;
+          if (hit.t1 < sMin || hit.t1 > sMax) continue;
+          if (hit.t2 < eMin || hit.t2 > eMax) continue;
+
+          const onEdge = hit.t2 >= -2e-3 && hit.t2 <= 1 + 2e-3;
+          const kind = onEdge ? 'edge_int' : 'ext_int';
+          registerIntersection(hit.pt3d, kind);
+
+          // 交点まで延長線の破線が確実に届くよう範囲を拡張
+          if (seg.extended && segExtBounds[seg.id]) {
+            const margin = 0.22 / segLen;
+            segExtBounds[seg.id].min = Math.min(segExtBounds[seg.id].min, hit.t1 - margin);
+            segExtBounds[seg.id].max = Math.max(segExtBounds[seg.id].max, hit.t1 + margin);
+          }
+          if (edgeExtended && edgeExtBounds[edge.id]) {
+            edgeExtBounds[edge.id].min = Math.min(edgeExtBounds[edge.id].min, hit.t2 - 0.22);
+            edgeExtBounds[edge.id].max = Math.max(edgeExtBounds[edge.id].max, hit.t2 + 0.22);
+          }
+        }
+      }
+
+      // 3. ユーザーが引いた線分同士（またはその延長線同士）の交点
+      const segs = state.drawState.drawnSegments;
+      for (let i = 0; i < segs.length; i++) {
+        for (let j = i + 1; j < segs.length; j++) {
+          const s1 = segs[i];
+          const s2 = segs[j];
+          const len1 = Math.max(vecLen(vecSub(s1.pB, s1.pA)), 0.2);
+          const len2 = Math.max(vecLen(vecSub(s2.pB, s2.pA)), 0.2);
+          const pad1 = 3.5 / len1;
+          const pad2 = 3.5 / len2;
+          const min1 = s1.extended ? -pad1 : -1e-3;
+          const max1 = s1.extended ? 1 + pad1 : 1 + 1e-3;
+          const min2 = s2.extended ? -pad2 : -1e-3;
+          const max2 = s2.extended ? 1 + pad2 : 1 + 1e-3;
+
+          const hit = intersectLines3D(s1.pA, s1.pB, s2.pA, s2.pB);
+          if (!hit) continue;
+          if (hit.t1 < min1 || hit.t1 > max1) continue;
+          if (hit.t2 < min2 || hit.t2 > max2) continue;
+
+          const inCube = isPointOnOrInCube(hit.pt3d);
+          registerIntersection(hit.pt3d, inCube ? 'edge_int' : 'ext_int');
+
+          if (s1.extended && segExtBounds[s1.id]) {
+            const m1 = 0.22 / len1;
+            segExtBounds[s1.id].min = Math.min(segExtBounds[s1.id].min, hit.t1 - m1);
+            segExtBounds[s1.id].max = Math.max(segExtBounds[s1.id].max, hit.t1 + m1);
+          }
+          if (s2.extended && segExtBounds[s2.id]) {
+            const m2 = 0.22 / len2;
+            segExtBounds[s2.id].min = Math.min(segExtBounds[s2.id].min, hit.t2 - m2);
+            segExtBounds[s2.id].max = Math.max(segExtBounds[s2.id].max, hit.t2 + m2);
+          }
+        }
+      }
+
+      // 4. 延長された立方体の辺同士の交点
+      const extEdgeIds = Array.from(state.extendedCubeEdges);
+      for (let i = 0; i < extEdgeIds.length; i++) {
+        for (let j = i + 1; j < extEdgeIds.length; j++) {
+          const e1 = getEdgeById(extEdgeIds[i]);
+          const e2 = getEdgeById(extEdgeIds[j]);
+          if (!e1 || !e2) continue;
+          const hit = intersectLines3D(VERTICES[e1.v1], VERTICES[e1.v2], VERTICES[e2.v1], VERTICES[e2.v2]);
+          if (!hit) continue;
+          if (hit.t1 < -3.2 || hit.t1 > 4.2 || hit.t2 < -3.2 || hit.t2 > 4.2) continue;
+          // 元の頂点でない場合のみ交点として追加
+          const isOrigVert = (hit.t1 >= -1e-2 && hit.t1 <= 1 + 1e-2) && (hit.t2 >= -1e-2 && hit.t2 <= 1 + 1e-2);
+          if (!isOrigVert) {
+            registerIntersection(hit.pt3d, 'ext_int');
+          }
+        }
+      }
+
+      // 5. 立方体の8頂点 A〜H も選択可能にする（頂点を通る切り口のため）
+      for (const key of Object.keys(VERTICES)) {
+        const v = VERTICES[key];
+        addSelectablePoint({ x: v.x, y: v.y, z: v.z }, `頂点${v.id}`, 'vertex');
+      }
+
+      return {
+        selectablePoints,
+        intersectionPoints,
+        edgeExtBounds,
+        segExtBounds,
+      };
+    }
+
+    // 作図した線分と正解の切り口線分が一致しているか判定
+    function checkAnswerMatch(section) {
+      if (!section.valid || section.segments.length < 3) {
+        return { isComplete: false, matchedCount: 0, totalRequired: 0, extraCount: 0 };
+      }
+      const eps = 2.5e-2;
+      const samePt = (a, b) => vecLen(vecSub(a, b)) < eps;
+
+      // ユーザーが引いた線分を立方体内部にクリップした有効な切り口線分リストを取得
+      const userClippedSegs = [];
+      for (const seg of state.drawState.drawnSegments) {
+        const clipped = clipSegmentToCube(seg.pA, seg.pB);
+        if (clipped && clipped.onFaces.length > 0) {
+          userClippedSegs.push({ pA: clipped.cA, pB: clipped.cB });
+        }
+      }
+
+      let matchedCount = 0;
+      const usedUserIdx = new Set();
+
+      for (const reqSeg of section.segments) {
+        let found = false;
+        for (let i = 0; i < userClippedSegs.length; i++) {
+          const uSeg = userClippedSegs[i];
+          const matchDir1 = samePt(reqSeg.pA, uSeg.pA) && samePt(reqSeg.pB, uSeg.pB);
+          const matchDir2 = samePt(reqSeg.pA, uSeg.pB) && samePt(reqSeg.pB, uSeg.pA);
+          if (matchDir1 || matchDir2) {
+            usedUserIdx.add(i);
+            found = true;
+          }
+        }
+        if (found) matchedCount++;
+      }
+
+      const extraCount = userClippedSegs.length - usedUserIdx.size;
+      const totalRequired = section.segments.length;
+      const isComplete = matchedCount === totalRequired && extraCount === 0;
+
+      return { isComplete, matchedCount, totalRequired, extraCount };
+    }
+
     // 見取り図モード時のY軸90度単位回転変換（中心基準）
     function rotateMitorizuCoords(x, y, z) {
       const q = ((state.mitorizu.rotQuarter % 4) + 4) % 4;
@@ -1359,9 +1769,13 @@
 
       const faceVis = getFaceVisibility();
       const section = computeCrossSection();
+      const isDrawMode = state.appMode === 'draw';
+      const showAutoSection = !isDrawMode || state.drawState.showAnswer;
+      const drawGeo = isDrawMode ? computeDrawModeGeometry() : null;
 
       // 延長線が1本以上選択されていれば「延長線をすべて消去」ボタンを表示
-      const hasAnyExt = state.extendedCubeEdges.size > 0 || state.extendedSectionFaces.size > 0;
+      const hasExtendedDrawnSeg = isDrawMode && state.drawState.drawnSegments.some(s => s.extended);
+      const hasAnyExt = state.extendedCubeEdges.size > 0 || state.extendedSectionFaces.size > 0 || hasExtendedDrawnSeg;
       clearExtensionsBtn.style.display = hasAnyExt ? 'inline-flex' : 'none';
 
       // 1. 3Dモード時は奥の面を薄く塗る
@@ -1400,14 +1814,18 @@
       }
       ctx.setLineDash([]);
 
-      // 3. クリック選択された延長線（立方体の辺の延長・切り口辺の延長・交点）を描画
-      drawSelectedExtensionLines(ctx, section, W, H, accentColor, sectionStrokeColor);
+      // 3. クリック選択された延長線（立方体の辺の延長・切り口辺や作図線分の延長・交点）を描画
+      drawSelectedExtensionLines(ctx, section, drawGeo, W, H, accentColor, sectionStrokeColor);
 
-      // 4. 切り口多角形の塗りつぶしと裏側の辺（破線）の描画
-      if (section.valid && section.polygon.length >= 3) {
+      // 4. 切り口多角形の塗りつぶしと裏側の辺（破線）の描画（自動表示モード または 答え合わせ表示時）
+      if (showAutoSection && section.valid && section.polygon.length >= 3) {
         const projPoly = section.polygon.map(pt => projectPoint(pt, W, H));
 
         if (state.options.showSectionFill) {
+          ctx.save();
+          if (isDrawMode && state.drawState.showAnswer) {
+            ctx.globalAlpha = 0.65;
+          }
           ctx.beginPath();
           projPoly.forEach((p, idx) => {
             if (idx === 0) ctx.moveTo(p.x, p.y);
@@ -1416,6 +1834,7 @@
           ctx.closePath();
           ctx.fillStyle = sectionFillColor;
           ctx.fill();
+          ctx.restore();
         }
 
         // 切り口の裏側の辺（隠れ線）を破線で描画
@@ -1423,17 +1842,93 @@
           if (!isSectionSegmentHidden(seg, faceVis)) continue;
           const pA = projectPoint(seg.pA, W, H);
           const pB = projectPoint(seg.pB, W, H);
-          const isHovered = state.hoverEdge && state.hoverEdge.type === 'section' && state.hoverEdge.id === seg.id;
+          const isHovered = !isDrawMode && state.hoverEdge && state.hoverEdge.type === 'section' && state.hoverEdge.id === seg.id;
 
+          ctx.save();
+          if (isDrawMode && state.drawState.showAnswer) {
+            ctx.strokeStyle = '#10b981';
+            ctx.lineWidth = 2.4;
+          } else {
+            ctx.strokeStyle = sectionStrokeColor;
+            ctx.lineWidth = isHovered ? 4.2 : 2.5;
+          }
           ctx.beginPath();
           ctx.setLineDash([6, 5]);
-          ctx.lineWidth = isHovered ? 4.2 : 2.5;
-          ctx.strokeStyle = sectionStrokeColor;
           ctx.moveTo(pA.x, pA.y);
           ctx.lineTo(pB.x, pB.y);
           ctx.stroke();
+          ctx.restore();
         }
         ctx.setLineDash([]);
+      }
+
+      // 4b. 作図モード：ユーザーが引いた線分のうち裏側の面にある部分（隠れ線）と立方体外の補助線部分を描画
+      if (isDrawMode) {
+        for (const seg of state.drawState.drawnSegments) {
+          const isHoveredSeg = state.hoverDrawnSegment && state.hoverDrawnSegment.id === seg.id;
+          const clipped = clipSegmentToCube(seg.pA, seg.pB);
+
+          // 立方体外にはみ出している部分（交点と辺上の点を結んだ作図補助線部分）を細い破線で描画
+          if (!clipped) {
+            const pA2d = projectPoint(seg.pA, W, H);
+            const pB2d = projectPoint(seg.pB, W, H);
+            ctx.save();
+            ctx.setLineDash([4, 4]);
+            ctx.strokeStyle = isHoveredSeg ? accentColor : sectionStrokeColor;
+            ctx.lineWidth = isHoveredSeg ? 3.0 : 1.9;
+            ctx.globalAlpha = 0.8;
+            ctx.beginPath();
+            ctx.moveTo(pA2d.x, pA2d.y);
+            ctx.lineTo(pB2d.x, pB2d.y);
+            ctx.stroke();
+            ctx.restore();
+          } else {
+            if (clipped.t0 > 1e-3) {
+              const pStart = projectPoint(seg.pA, W, H);
+              const pEnter = projectPoint(clipped.cA, W, H);
+              ctx.save();
+              ctx.setLineDash([4, 4]);
+              ctx.strokeStyle = isHoveredSeg ? accentColor : sectionStrokeColor;
+              ctx.lineWidth = isHoveredSeg ? 2.8 : 1.8;
+              ctx.globalAlpha = 0.78;
+              ctx.beginPath();
+              ctx.moveTo(pStart.x, pStart.y);
+              ctx.lineTo(pEnter.x, pEnter.y);
+              ctx.stroke();
+              ctx.restore();
+            }
+            if (clipped.t1 < 1 - 1e-3) {
+              const pLeave = projectPoint(clipped.cB, W, H);
+              const pEnd = projectPoint(seg.pB, W, H);
+              ctx.save();
+              ctx.setLineDash([4, 4]);
+              ctx.strokeStyle = isHoveredSeg ? accentColor : sectionStrokeColor;
+              ctx.lineWidth = isHoveredSeg ? 2.8 : 1.8;
+              ctx.globalAlpha = 0.78;
+              ctx.beginPath();
+              ctx.moveTo(pLeave.x, pLeave.y);
+              ctx.lineTo(pEnd.x, pEnd.y);
+              ctx.stroke();
+              ctx.restore();
+            }
+
+            // 立方体内部（切り口線分）が隠れ面にある場合はここで破線描画
+            const hidden = isSectionSegmentHidden({ onFaces: clipped.onFaces }, faceVis);
+            if (hidden) {
+              const pA2d = projectPoint(clipped.cA, W, H);
+              const pB2d = projectPoint(clipped.cB, W, H);
+              ctx.save();
+              ctx.setLineDash([6, 5]);
+              ctx.lineWidth = isHoveredSeg ? 4.2 : 2.7;
+              ctx.strokeStyle = isHoveredSeg ? accentColor : sectionStrokeColor;
+              ctx.beginPath();
+              ctx.moveTo(pA2d.x, pA2d.y);
+              ctx.lineTo(pB2d.x, pB2d.y);
+              ctx.stroke();
+              ctx.restore();
+            }
+          }
+        }
       }
 
       // 5. 手前の可視辺（立方体の実線の辺）を描画
@@ -1455,22 +1950,29 @@
         }
       }
 
-      // 6. 切り口の表側の辺（実線）と交点を手前に描画（立方体の辺と重なる場合も切り口の実線がはっきり見えるようにする）
-      if (section.valid && section.polygon.length >= 3) {
+      // 6. 切り口の表側の辺（実線）と交点を手前に描画（自動表示モード または 答え合わせ表示時）
+      if (showAutoSection && section.valid && section.polygon.length >= 3) {
         for (const seg of section.segments) {
           if (isSectionSegmentHidden(seg, faceVis)) continue;
           const pA = projectPoint(seg.pA, W, H);
           const pB = projectPoint(seg.pB, W, H);
-          const isHovered = state.hoverEdge && state.hoverEdge.type === 'section' && state.hoverEdge.id === seg.id;
+          const isHovered = !isDrawMode && state.hoverEdge && state.hoverEdge.type === 'section' && state.hoverEdge.id === seg.id;
 
-          ctx.beginPath();
+          ctx.save();
           ctx.setLineDash([]);
-          ctx.lineWidth = isHovered ? 4.6 : 3.2;
           ctx.lineCap = 'round';
-          ctx.strokeStyle = sectionStrokeColor;
+          if (isDrawMode && state.drawState.showAnswer) {
+            ctx.strokeStyle = '#10b981';
+            ctx.lineWidth = 3.0;
+          } else {
+            ctx.strokeStyle = sectionStrokeColor;
+            ctx.lineWidth = isHovered ? 4.6 : 3.2;
+          }
+          ctx.beginPath();
           ctx.moveTo(pA.x, pA.y);
           ctx.lineTo(pB.x, pB.y);
           ctx.stroke();
+          ctx.restore();
         }
 
         // 切り口の全交点
@@ -1482,9 +1984,112 @@
             ctx.fillStyle = '#ffffff';
             ctx.fill();
             ctx.lineWidth = 2;
-            ctx.strokeStyle = sectionStrokeColor;
+            ctx.strokeStyle = (isDrawMode && state.drawState.showAnswer) ? '#10b981' : sectionStrokeColor;
             ctx.stroke();
           }
+        }
+      }
+
+      // 6b. 作図モード：ユーザーが引いた線分のうち表側の面にある部分（実線）と、ラバーバンド・交点ドットを描画
+      if (isDrawMode && drawGeo) {
+        for (const seg of state.drawState.drawnSegments) {
+          const isHoveredSeg = state.hoverDrawnSegment && state.hoverDrawnSegment.id === seg.id;
+          const clipped = clipSegmentToCube(seg.pA, seg.pB);
+          if (!clipped) continue;
+          const hidden = isSectionSegmentHidden({ onFaces: clipped.onFaces }, faceVis);
+          if (hidden) continue;
+
+          const pA2d = projectPoint(clipped.cA, W, H);
+          const pB2d = projectPoint(clipped.cB, W, H);
+          ctx.save();
+          ctx.setLineDash([]);
+          ctx.lineCap = 'round';
+          ctx.lineWidth = isHoveredSeg ? 4.6 : 3.4;
+          ctx.strokeStyle = isHoveredSeg ? accentColor : sectionStrokeColor;
+          ctx.beginPath();
+          ctx.moveTo(pA2d.x, pA2d.y);
+          ctx.lineTo(pB2d.x, pB2d.y);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // 1点目選択中のラバーバンド（プレビュー線）
+        if (state.drawState.selectedPoint && state.drawState.rubberbandPos) {
+          const sp2d = projectPoint(state.drawState.selectedPoint.pt3d, W, H);
+          let targetX = state.drawState.rubberbandPos.x;
+          let targetY = state.drawState.rubberbandPos.y;
+          if (state.hoverDrawPoint) {
+            const hp2d = projectPoint(state.hoverDrawPoint.pt3d, W, H);
+            targetX = hp2d.x;
+            targetY = hp2d.y;
+          }
+          ctx.save();
+          ctx.setLineDash([5, 4]);
+          ctx.lineWidth = 2.4;
+          ctx.strokeStyle = sectionStrokeColor;
+          ctx.beginPath();
+          ctx.moveTo(sp2d.x, sp2d.y);
+          ctx.lineTo(targetX, targetY);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // 頂点A〜Hがホバーまたは選択されている場合のガイド表示
+        for (const pt of drawGeo.selectablePoints) {
+          if (pt.type !== 'vertex') continue;
+          const isSelected = state.drawState.selectedPoint && state.drawState.selectedPoint.id === pt.id;
+          const isHovered = state.hoverDrawPoint && state.hoverDrawPoint.id === pt.id;
+          if (!isSelected && !isHovered) continue;
+
+          const p2d = projectPoint(pt.pt3d, W, H);
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(p2d.x, p2d.y, 11, 0, Math.PI * 2);
+          ctx.fillStyle = accentColor + '28';
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(p2d.x, p2d.y, 5.5, 0, Math.PI * 2);
+          ctx.fillStyle = '#ffffff';
+          ctx.fill();
+          ctx.lineWidth = 2.2;
+          ctx.strokeStyle = accentColor;
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // 延長線の交点 および 辺と延長線の交点 を選択可能な点として描画
+        for (const pt of drawGeo.intersectionPoints) {
+          const p2d = projectPoint(pt.pt3d, W, H);
+          const isSelected = state.drawState.selectedPoint && state.drawState.selectedPoint.id === pt.id;
+          const isHovered = state.hoverDrawPoint && state.hoverDrawPoint.id === pt.id;
+          const dotColor = pt.type === 'edge_int' ? '#10b981' : accentColor;
+
+          ctx.save();
+          if (isSelected || isHovered) {
+            ctx.beginPath();
+            ctx.arc(p2d.x, p2d.y, 13, 0, Math.PI * 2);
+            ctx.fillStyle = dotColor + '33';
+            ctx.fill();
+          }
+
+          ctx.beginPath();
+          ctx.arc(p2d.x, p2d.y, isHovered || isSelected ? 7.2 : 6.0, 0, Math.PI * 2);
+          ctx.fillStyle = dotColor;
+          ctx.fill();
+          ctx.lineWidth = 2.2;
+          ctx.strokeStyle = '#ffffff';
+          ctx.stroke();
+
+          // 交点ラベルを表示
+          ctx.font = '700 10px "Segoe UI", sans-serif';
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'middle';
+          const labelText = pt.type === 'edge_int' ? '辺との交点' : '延長線の交点';
+          if (isHovered || isSelected) {
+            ctx.fillStyle = textPrimaryColor;
+            ctx.fillText(labelText, p2d.x + 10, p2d.y - 8);
+          }
+          ctx.restore();
         }
       }
 
@@ -1514,17 +2119,28 @@
         const p2d = projectPoint(pt, W, H);
         const color = pointColors[pt.colorKey];
         const isActive = state.activePointIndex === idx;
-        const isHovered = state.hoverPointIndex === idx;
+        const isHovered = state.hoverPointIndex === idx || (isDrawMode && state.hoverDrawPoint && state.hoverDrawPoint.name === pt.name);
+        const isSelectedForLine = isDrawMode && state.drawState.selectedPoint && state.drawState.selectedPoint.name === pt.name;
 
-        if (isActive || isHovered) {
+        if (isActive || isHovered || isSelectedForLine) {
           ctx.beginPath();
-          ctx.arc(p2d.x, p2d.y, 14, 0, Math.PI * 2);
-          ctx.fillStyle = color + '33';
+          ctx.arc(p2d.x, p2d.y, isSelectedForLine ? 16 : 14, 0, Math.PI * 2);
+          ctx.fillStyle = color + (isSelectedForLine ? '44' : '33');
           ctx.fill();
         }
 
+        if (isSelectedForLine) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(p2d.x, p2d.y, 12.5, 0, Math.PI * 2);
+          ctx.lineWidth = 2.2;
+          ctx.strokeStyle = color;
+          ctx.stroke();
+          ctx.restore();
+        }
+
         ctx.beginPath();
-        ctx.arc(p2d.x, p2d.y, isHovered ? 9.5 : 8.5, 0, Math.PI * 2);
+        ctx.arc(p2d.x, p2d.y, isHovered || isSelectedForLine ? 9.5 : 8.5, 0, Math.PI * 2);
         ctx.fillStyle = color;
         ctx.fill();
         ctx.lineWidth = 2.4;
@@ -1541,14 +2157,16 @@
       ctx.restore();
 
       renderTrueShape(section);
-      updateSectionUI(section);
+      updateSectionUI(section, drawGeo);
     }
 
-    // クリック選択された立方体の辺や切り口辺の延長線と、その交点（作図の補助点）を描画
-    function drawSelectedExtensionLines(ctx, section, W, H, accentColor, sectionStrokeColor) {
+    // クリック選択された立方体の辺や切り口辺・作図線分の延長線を描画
+    function drawSelectedExtensionLines(ctx, section, drawGeo, W, H, accentColor, sectionStrokeColor) {
+      const isDrawMode = state.appMode === 'draw';
       const hasCubeExt = state.extendedCubeEdges.size > 0;
-      const hasSecExt = state.extendedSectionFaces.size > 0;
-      if (!hasCubeExt && !hasSecExt) return;
+      const hasSecExt = !isDrawMode && state.extendedSectionFaces.size > 0;
+      const hasUserSegExt = isDrawMode && state.drawState.drawnSegments.some(s => s.extended);
+      if (!hasCubeExt && !hasSecExt && !hasUserSegExt) return;
 
       ctx.save();
 
@@ -1566,8 +2184,12 @@
           const B = VERTICES[edge.v2];
           const dir = vecSub(B, A);
 
-          const extStart = vecSub(A, vecScale(dir, 1.25));
-          const extEnd = vecAdd(B, vecScale(dir, 1.25));
+          const bounds = (isDrawMode && drawGeo && drawGeo.edgeExtBounds[edgeId])
+            ? drawGeo.edgeExtBounds[edgeId]
+            : { min: -1.25, max: 2.25 };
+
+          const extStart = vecAdd(A, vecScale(dir, bounds.min));
+          const extEnd = vecAdd(A, vecScale(dir, bounds.max));
 
           const pStart = projectPoint(extStart, W, H);
           const pA = projectPoint(A, W, H);
@@ -1581,8 +2203,8 @@
           ctx.lineTo(pEnd.x, pEnd.y);
           ctx.stroke();
 
-          // 切断面との交点（立方体外の作図補助点）があればドットを表示
-          if (section.valid) {
+          // 自動表示モード時は切断面との交点にドットを表示
+          if (!isDrawMode && section.valid) {
             const denom = vecDot(section.normal, dir);
             if (Math.abs(denom) > 1e-5) {
               const t = (section.d - vecDot(section.normal, A)) / denom;
@@ -1606,7 +2228,7 @@
         }
       }
 
-      // 2. 選択された切り口の辺を両方向に延長描画
+      // 2. 自動表示モード：選択された切り口の辺を両方向に延長描画
       if (hasSecExt && section.valid) {
         ctx.setLineDash([5, 4]);
         ctx.strokeStyle = sectionStrokeColor;
@@ -1624,6 +2246,36 @@
           const pA = projectPoint(seg.pA, W, H);
           const pB = projectPoint(seg.pB, W, H);
           const pEnd = projectPoint(extB, W, H);
+
+          ctx.beginPath();
+          ctx.moveTo(pStart.x, pStart.y);
+          ctx.lineTo(pA.x, pA.y);
+          ctx.moveTo(pB.x, pB.y);
+          ctx.lineTo(pEnd.x, pEnd.y);
+          ctx.stroke();
+        }
+      }
+
+      // 3. 作図モード：クリックで延長ONになった作図線分の延長補助線を描画
+      if (hasUserSegExt && drawGeo) {
+        ctx.setLineDash([5, 4]);
+        ctx.strokeStyle = sectionStrokeColor;
+        ctx.lineWidth = 2.0;
+        ctx.globalAlpha = 0.85;
+
+        for (const seg of state.drawState.drawnSegments) {
+          if (!seg.extended) continue;
+          const dir = vecSub(seg.pB, seg.pA);
+          if (vecLen(dir) < 1e-6) continue;
+          const bounds = drawGeo.segExtBounds[seg.id] || { min: -1.2, max: 2.2 };
+
+          const extStart = vecAdd(seg.pA, vecScale(dir, bounds.min));
+          const extEnd = vecAdd(seg.pA, vecScale(dir, bounds.max));
+
+          const pStart = projectPoint(extStart, W, H);
+          const pA = projectPoint(seg.pA, W, H);
+          const pB = projectPoint(seg.pB, W, H);
+          const pEnd = projectPoint(extEnd, W, H);
 
           ctx.beginPath();
           ctx.moveTo(pStart.x, pStart.y);
@@ -1655,6 +2307,19 @@
       const strokeColor = style.getPropertyValue('--section-stroke').trim();
       const fillColor = style.getPropertyValue('--section-fill').trim();
       const subTextColor = style.getPropertyValue('--text-secondary').trim();
+
+      if (state.appMode === 'draw' && !state.drawState.showAnswer) {
+        const match = checkAnswerMatch(section);
+        if (!match.isComplete) {
+          tsCtx.fillStyle = subTextColor;
+          tsCtx.font = '600 11px sans-serif';
+          tsCtx.textAlign = 'center';
+          tsCtx.fillText('作図完了または', W / 2, H / 2 - 8);
+          tsCtx.fillText('「答え合わせ」で表示', W / 2, H / 2 + 8);
+          tsCtx.restore();
+          return;
+        }
+      }
 
       if (!section.valid || section.polygon.length < 3) {
         tsCtx.fillStyle = subTextColor;
@@ -1707,13 +2372,58 @@
       tsCtx.restore();
     }
 
-    function updateSectionUI(section) {
+    function updateSectionUI(section, drawGeo) {
       const shapeNameBadge = document.getElementById('shapeNameBadge');
       const shapeDetailBadge = document.getElementById('shapeDetailBadge');
       const statShapeName = document.getElementById('statShapeName');
       const statArea = document.getElementById('statArea');
       const statPerimeter = document.getElementById('statPerimeter');
       const trueShapeVerticesCount = document.getElementById('trueShapeVerticesCount');
+
+      if (state.appMode === 'draw') {
+        const segCount = state.drawState.drawnSegments.length;
+        const extCount = state.extendedCubeEdges.size + state.drawState.drawnSegments.filter(s => s.extended).length;
+        const intCount = drawGeo ? drawGeo.intersectionPoints.length : 0;
+        const match = checkAnswerMatch(section);
+
+        drawSegmentCountBadge.textContent = `線分: ${segCount}本 ／ 交点: ${intCount}個`;
+        drawStatLines.textContent = `${segCount} 本`;
+        drawStatExts.textContent = `${extCount} 本`;
+
+        if (match.isComplete) {
+          drawStatResult.textContent = `🎉 正解！（${section.shapeInfo.name}）`;
+          drawStatResult.style.color = '#10b981';
+          drawChallengeBadge.textContent = '🎉 作図完成！';
+          shapeNameBadge.textContent = `🎉 ${section.shapeInfo.name}`;
+          shapeDetailBadge.textContent = `全${match.totalRequired}辺を正しく作図できました！`;
+          trueShapeVerticesCount.textContent = `${section.shapeInfo.vertexCount}角形`;
+        } else if (state.drawState.showAnswer && section.valid) {
+          drawStatResult.textContent = `答え表示中 (${match.matchedCount}/${match.totalRequired}辺一致)`;
+          drawStatResult.style.color = 'var(--accent)';
+          drawChallengeBadge.textContent = '答え表示中';
+          shapeNameBadge.textContent = `正解: ${section.shapeInfo.name}`;
+          shapeDetailBadge.textContent = `${match.matchedCount} / ${match.totalRequired} 辺が一致`;
+          trueShapeVerticesCount.textContent = `${section.shapeInfo.vertexCount}角形`;
+        } else {
+          if (state.drawState.selectedPoint) {
+            shapeNameBadge.textContent = `始点: ${state.drawState.selectedPoint.name} を選択中`;
+            shapeDetailBadge.textContent = '2点目（点P/Q/R または 交点）をクリックして線分を引く';
+          } else {
+            shapeNameBadge.textContent = '✏️ 切り口を書くモード';
+            shapeDetailBadge.textContent = `2点を選んで線分を引く ／ 辺・線分クリックで延長線 (${match.matchedCount}/${match.totalRequired || '?'}辺)`;
+          }
+          drawStatResult.textContent = segCount === 0 ? '作図中' : `${match.matchedCount} / ${match.totalRequired} 辺一致`;
+          drawStatResult.style.color = 'var(--text-primary)';
+          drawChallengeBadge.textContent = state.drawState.selectedPoint ? `${state.drawState.selectedPoint.name} から線分作成中` : '作図モード';
+          trueShapeVerticesCount.textContent = '？';
+        }
+
+        const ansText = state.drawState.showAnswer ? '答えを隠す' : '答え合わせ';
+        drawCheckAnswerLabel.textContent = ansText;
+        sideCheckAnswerLabel.textContent = state.drawState.showAnswer ? '正解の切り口を隠す' : '答え合わせ（正解の切り口を表示）';
+        drawCheckAnswerBtn.classList.toggle('active', state.drawState.showAnswer);
+        return;
+      }
 
       if (!section.valid) {
         shapeNameBadge.textContent = '断面未成立';
@@ -1732,6 +2442,15 @@
       statArea.textContent = `${info.areaCm2.toFixed(1)} cm²`;
       statPerimeter.textContent = `${info.perimeterCm.toFixed(1)} cm`;
       trueShapeVerticesCount.textContent = `${info.vertexCount}角形`;
+    }
+
+    // 3点P, Q, Rの位置変更時に作図データをリセット（新しい3点配置で最初から作図できるようにする）
+    function onPointsChanged() {
+      if (state.appMode === 'draw') {
+        state.drawState.selectedPoint = null;
+        state.drawState.drawnSegments = [];
+        state.drawState.showAnswer = false;
+      }
     }
 
     // 右パネルの3点(P, Q, R)操作カードを生成・更新（スライダーなし・1行コンパクト構成）
@@ -1779,6 +2498,7 @@
           e.stopPropagation();
           state.activePointIndex = idx;
           state.points[idx].edgeId = e.target.value;
+          onPointsChanged();
           syncPointCardsUI();
           render();
         });
@@ -1800,6 +2520,7 @@
             e.stopPropagation();
             state.activePointIndex = idx;
             state.points[idx].t = s.val;
+            onPointsChanged();
             syncPointCardsUI();
             render();
           });
@@ -1874,21 +2595,58 @@
       return Math.round(rawT * 20) / 20;
     }
 
-    // マウス位置に最も近い辺（立方体の辺 または 切り口の辺）を検出
+    // 作図モード：マウス位置に最も近い選択可能な点（P, Q, R, 延長線の交点, 辺と延長線の交点, 頂点）を検出
+    function findHoveredSelectablePoint(x, y, W, H, drawGeo) {
+      if (!drawGeo) return null;
+      let bestPt = null;
+      let minDist = 17;
+
+      for (const pt of drawGeo.selectablePoints) {
+        // 頂点A〜Hは少し判定半径を絞って辺やP/Q/Rの邪魔にならないようにする
+        const radiusLimit = pt.type === 'vertex' ? 12 : 17;
+        const p2d = projectPoint(pt.pt3d, W, H);
+        const d = Math.hypot(x - p2d.x, y - p2d.y);
+        if (d < Math.min(minDist, radiusLimit)) {
+          minDist = d;
+          bestPt = pt;
+        }
+      }
+      return bestPt;
+    }
+
+    // 作図モード：マウス位置に最も近い作図済み線分を検出（クリックでその線分の延長線をON/OFF）
+    function findHoveredDrawnSegment(x, y, W, H) {
+      let bestSeg = null;
+      let minDist = 11;
+      for (const seg of state.drawState.drawnSegments) {
+        const pA = projectPoint(seg.pA, W, H);
+        const pB = projectPoint(seg.pB, W, H);
+        const { dist } = closestPointOnSegment2D(x, y, pA.x, pA.y, pB.x, pB.y);
+        if (dist < minDist) {
+          minDist = dist;
+          bestSeg = seg;
+        }
+      }
+      return bestSeg;
+    }
+
+    // マウス位置に最も近い辺（立方体の辺 または 自動表示モード時の切り口の辺）を検出
     function findHoveredEdge(x, y, W, H) {
-      const section = computeCrossSection();
       let bestHit = null;
       let minDist = 11;
 
-      // 切り口の辺を判定
-      if (section.valid) {
-        for (const seg of section.segments) {
-          const pA = projectPoint(seg.pA, W, H);
-          const pB = projectPoint(seg.pB, W, H);
-          const { dist } = closestPointOnSegment2D(x, y, pA.x, pA.y, pB.x, pB.y);
-          if (dist < minDist) {
-            minDist = dist;
-            bestHit = { type: 'section', id: seg.id };
+      // 自動表示モード時のみ切り口の辺を判定
+      if (state.appMode === 'auto') {
+        const section = computeCrossSection();
+        if (section.valid) {
+          for (const seg of section.segments) {
+            const pA = projectPoint(seg.pA, W, H);
+            const pB = projectPoint(seg.pB, W, H);
+            const { dist } = closestPointOnSegment2D(x, y, pA.x, pA.y, pB.x, pB.y);
+            if (dist < minDist) {
+              minDist = dist;
+              bestHit = { type: 'section', id: seg.id };
+            }
           }
         }
       }
@@ -1907,9 +2665,128 @@
       return bestHit;
     }
 
+    // 作図モードで点をクリック選択したときの処理（2点選択で線分作成）
+    function handleDrawModePointClick(clickedPt) {
+      const sel = state.drawState.selectedPoint;
+      if (!sel) {
+        state.drawState.selectedPoint = clickedPt;
+        render();
+        return;
+      }
+
+      // 同じ点を再クリックした場合は選択解除
+      if (vecLen(vecSub(sel.pt3d, clickedPt.pt3d)) < 4e-3) {
+        state.drawState.selectedPoint = null;
+        render();
+        return;
+      }
+
+      // 既に同じ2点を結ぶ線分が存在するか確認
+      const eps = 1e-2;
+      const samePt = (a, b) => vecLen(vecSub(a, b)) < eps;
+      const existing = state.drawState.drawnSegments.find(s =>
+        (samePt(s.pA, sel.pt3d) && samePt(s.pB, clickedPt.pt3d)) ||
+        (samePt(s.pA, clickedPt.pt3d) && samePt(s.pB, sel.pt3d))
+      );
+
+      if (!existing) {
+        const pA = { x: sel.pt3d.x, y: sel.pt3d.y, z: sel.pt3d.z };
+        const pB = { x: clickedPt.pt3d.x, y: clickedPt.pt3d.y, z: clickedPt.pt3d.z };
+        state.drawState.drawnSegments.push({
+          id: `useg_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+          pA,
+          pB,
+          pAName: sel.name,
+          pBName: clickedPt.name,
+          onFaces: detectSegmentFaces(pA, pB),
+          extended: false,
+        });
+      }
+
+      state.drawState.selectedPoint = null;
+      render();
+    }
+
     mainCanvas.addEventListener('pointerdown', (evt) => {
       const { x, y, W, H } = getCanvasMousePos(evt);
 
+      // --- 作図モード時のポインタ処理 ---
+      if (state.appMode === 'draw') {
+        const drawGeo = computeDrawModeGeometry();
+
+        // 1. まず点 P, Q, R にヒットしたか確認（ドラッグなら位置変更、クリックなら線分の端点選択）
+        let hitUserIdx = -1;
+        let minUserDist = 17;
+        state.points.forEach((pt, idx) => {
+          const p3d = getPointOnEdge3D(pt.edgeId, pt.t);
+          const p2d = projectPoint(p3d, W, H);
+          const d = Math.hypot(x - p2d.x, y - p2d.y);
+          if (d < minUserDist) {
+            minUserDist = d;
+            hitUserIdx = idx;
+          }
+        });
+
+        if (hitUserIdx !== -1) {
+          const userPtObj = drawGeo.selectablePoints.find(p => p.name === state.points[hitUserIdx].name);
+          state.activePointIndex = hitUserIdx;
+          state.drawState.pendingPointAction = {
+            pointIndex: hitUserIdx,
+            selectablePoint: userPtObj,
+            downX: x,
+            downY: y,
+            dragged: false,
+          };
+          mainCanvas.setPointerCapture(evt.pointerId);
+          syncPointCardsUI();
+          render();
+          return;
+        }
+
+        // 2. 交点（延長線の交点 / 辺と延長線の交点）または頂点にヒットしたか確認 -> クリックで点選択
+        const hitSelectable = findHoveredSelectablePoint(x, y, W, H, drawGeo);
+        if (hitSelectable) {
+          handleDrawModePointClick(hitSelectable);
+          return;
+        }
+
+        // 3. ユーザーが引いた線分をクリックしたか確認 -> その線分の延長線（補助線）をON/OFF
+        const hitUserSeg = findHoveredDrawnSegment(x, y, W, H);
+        if (hitUserSeg) {
+          hitUserSeg.extended = !hitUserSeg.extended;
+          state.drawState.selectedPoint = null;
+          render();
+          return;
+        }
+
+        // 4. 立方体の辺をクリックしたか確認 -> その辺の延長線（補助線）をON/OFF
+        const hitEdge = findHoveredEdge(x, y, W, H);
+        if (hitEdge && hitEdge.type === 'cube') {
+          if (state.extendedCubeEdges.has(hitEdge.id)) {
+            state.extendedCubeEdges.delete(hitEdge.id);
+          } else {
+            state.extendedCubeEdges.add(hitEdge.id);
+          }
+          state.drawState.selectedPoint = null;
+          render();
+          return;
+        }
+
+        // 5. 背景クリック時は選択中の点を解除し、3Dモードならカメラ回転開始
+        if (state.drawState.selectedPoint) {
+          state.drawState.selectedPoint = null;
+          render();
+        }
+        if (state.viewMode === '3d') {
+          state.dragging.type = 'camera';
+          state.dragging.lastX = evt.clientX;
+          state.dragging.lastY = evt.clientY;
+          mainCanvas.setPointerCapture(evt.pointerId);
+        }
+        return;
+      }
+
+      // --- 自動表示モード時のポインタ処理 ---
       // 1. 点 P, Q, R のハンドルをクリックしたか判定（ドラッグで移動）
       let hitPointIdx = -1;
       let minPtDist = 18;
@@ -1965,6 +2842,19 @@
 
     mainCanvas.addEventListener('pointermove', (evt) => {
       const { x, y, W, H } = getCanvasMousePos(evt);
+      state.drawState.rubberbandPos = { x, y };
+
+      // 作図モードでP, Q, Rを押下中の場合：6px以上動いたらドラッグ移動に切り替え
+      if (state.appMode === 'draw' && state.drawState.pendingPointAction) {
+        const pending = state.drawState.pendingPointAction;
+        if (!pending.dragged && Math.hypot(x - pending.downX, y - pending.downY) > 6) {
+          pending.dragged = true;
+          state.dragging.type = 'point';
+          state.dragging.pointIndex = pending.pointIndex;
+          onPointsChanged();
+          mainCanvas.classList.add('dragging-handle');
+        }
+      }
 
       if (state.dragging.type === 'point') {
         const idx = state.dragging.pointIndex;
@@ -2003,7 +2893,24 @@
         return;
       }
 
-      // 点P, Q, R または 辺のホバー判定
+      if (state.appMode === 'draw') {
+        const drawGeo = computeDrawModeGeometry();
+        const nextHoverPt = findHoveredSelectablePoint(x, y, W, H, drawGeo);
+        const nextHoverSeg = !nextHoverPt ? findHoveredDrawnSegment(x, y, W, H) : null;
+        const nextHoverEdge = (!nextHoverPt && !nextHoverSeg) ? findHoveredEdge(x, y, W, H) : null;
+
+        state.hoverDrawPoint = nextHoverPt;
+        state.hoverDrawnSegment = nextHoverSeg;
+        state.hoverEdge = nextHoverEdge;
+        state.hoverPointIndex = -1;
+
+        const isHoveringAnything = Boolean(nextHoverPt || nextHoverSeg || nextHoverEdge);
+        mainCanvas.classList.toggle('hovering-handle', isHoveringAnything);
+        render();
+        return;
+      }
+
+      // 自動表示モード：点P, Q, R または 辺のホバー判定
       let hoverIdx = -1;
       state.points.forEach((pt, idx) => {
         const p3d = getPointOnEdge3D(pt.edgeId, pt.t);
@@ -2027,6 +2934,17 @@
     });
 
     function endDrag(evt) {
+      if (state.appMode === 'draw' && state.drawState.pendingPointAction) {
+        const pending = state.drawState.pendingPointAction;
+        state.drawState.pendingPointAction = null;
+        if (!pending.dragged && pending.selectablePoint) {
+          // ドラッグせずクリックだった場合は線分の端点として選択
+          const drawGeo = computeDrawModeGeometry();
+          const freshPt = drawGeo.selectablePoints.find(p => p.name === pending.selectablePoint.name) || pending.selectablePoint;
+          handleDrawModePointClick(freshPt);
+        }
+      }
+
       if (state.dragging.type) {
         state.dragging.type = null;
         state.dragging.pointIndex = -1;
@@ -2042,8 +2960,72 @@
     clearExtensionsBtn.addEventListener('click', () => {
       state.extendedCubeEdges.clear();
       state.extendedSectionFaces.clear();
+      state.drawState.drawnSegments.forEach(s => { s.extended = false; });
       render();
     });
+
+    // 作図モード操作ボタン群（1手戻す / 作図リセット / 答え合わせ）
+    drawUndoBtn.addEventListener('click', () => {
+      if (state.drawState.selectedPoint) {
+        state.drawState.selectedPoint = null;
+      } else if (state.drawState.drawnSegments.length > 0) {
+        state.drawState.drawnSegments.pop();
+      }
+      render();
+    });
+
+    drawClearBtn.addEventListener('click', () => {
+      state.drawState.selectedPoint = null;
+      state.drawState.drawnSegments = [];
+      state.drawState.showAnswer = false;
+      state.extendedCubeEdges.clear();
+      render();
+    });
+
+    function toggleCheckAnswer() {
+      state.drawState.showAnswer = !state.drawState.showAnswer;
+      render();
+    }
+
+    drawCheckAnswerBtn.addEventListener('click', toggleCheckAnswer);
+    sideCheckAnswerBtn.addEventListener('click', toggleCheckAnswer);
+
+    // アプリモード切替（自動表示モード vs 切り口を書くモード）
+    const modeHintText = document.getElementById('modeHintText');
+
+    function updateModeHintText() {
+      if (state.appMode === 'draw') {
+        modeHintText.textContent = '✏️ 切り口を書くモード：①3点(P・Q・R)を設定 → ②2点をクリックして線分を書く → ③辺や線分をクリックで延長線 → ④交点も選択可能';
+      } else if (state.viewMode === '3d') {
+        modeHintText.textContent = '💡 点P・Q・Rをドラッグで移動 ／ 辺（立方体・切り口）をクリックで延長線の表示・非表示 ／ 背景ドラッグで3D回転';
+      } else {
+        modeHintText.textContent = '💡 見取り図モード ／ 上部のボタンで見取り図の視点・向きを切り替え ／ 辺をクリックで延長線の表示・非表示';
+      }
+    }
+
+    function setAppMode(appMode) {
+      state.appMode = appMode;
+      modeAutoBtn.classList.toggle('active', appMode === 'auto');
+      modeDrawBtn.classList.toggle('active', appMode === 'draw');
+
+      autoControlsGroup.style.display = appMode === 'auto' ? 'flex' : 'none';
+      drawControlsGroup.style.display = appMode === 'draw' ? 'flex' : 'none';
+      autoStatsSection.style.display = appMode === 'auto' ? 'block' : 'none';
+      drawModeSection.style.display = appMode === 'draw' ? 'block' : 'none';
+
+      pointsSectionTitle.textContent = appMode === 'draw'
+        ? '1. 最初に辺上の3点 (P・Q・R) を設定'
+        : '1. 辺上の3点 (P・Q・R) を指定';
+
+      state.drawState.selectedPoint = null;
+      state.hoverDrawPoint = null;
+      state.hoverDrawnSegment = null;
+      updateModeHintText();
+      render();
+    }
+
+    modeAutoBtn.addEventListener('click', () => setAppMode('auto'));
+    modeDrawBtn.addEventListener('click', () => setAppMode('draw'));
 
     // 見取り図の視点切り替えボタン群
     function syncMitorizuViewButtons() {
@@ -2076,7 +3058,6 @@
     // 表示モード切替 (3D表示 vs 見取り図表示)
     const mode3dBtn = document.getElementById('mode3dBtn');
     const modeMitorizuBtn = document.getElementById('modeMitorizuBtn');
-    const modeHintText = document.getElementById('modeHintText');
     const topShapeBadge = document.getElementById('topShapeBadge');
     const toggleTopInfoBtn = document.getElementById('toggleTopInfoBtn');
     const toggleTopInfoLabel = document.getElementById('toggleTopInfoLabel');
@@ -2101,11 +3082,7 @@
       modeMitorizuBtn.classList.toggle('active', mode === 'mitorizu');
       mainCanvas.classList.toggle('mode-mitorizu', mode === 'mitorizu');
 
-      if (mode === '3d') {
-        modeHintText.textContent = '💡 点P・Q・Rをドラッグで移動 ／ 辺（立方体・切り口）をクリックで延長線の表示・非表示 ／ 背景ドラッグで3D回転';
-      } else {
-        modeHintText.textContent = '💡 見取り図モード ／ 上部のボタンで見取り図の視点・向きを切り替え ／ 辺をクリックで延長線の表示・非表示';
-      }
+      updateModeHintText();
       updateTopOverlayVisibility();
       render();
     }
@@ -2197,6 +3174,7 @@
           state.points[idx].t = p.t;
         });
 
+        onPointsChanged();
         document.getElementById('explanationText').textContent = preset.desc;
         syncPointCardsUI();
         render();
