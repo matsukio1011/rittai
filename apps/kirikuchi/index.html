@@ -134,15 +134,16 @@
       border: none;
       background: transparent;
       color: var(--text-secondary);
-      font-size: 0.85rem;
+      font-size: 0.81rem;
       font-weight: 600;
-      padding: 6px 16px;
+      padding: 5px 11px;
       border-radius: 7px;
       cursor: pointer;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       transition: all 0.15s ease;
+      white-space: nowrap;
     }
 
     .mode-btn:hover {
@@ -617,12 +618,36 @@
           </svg>
         </div>
         <div>
-          <span class="brand-title">立方体の切り口シミュレーター</span>
+          <span id="brandTitle" class="brand-title">立方体の切り口シミュレーター</span>
           <span class="brand-sub">辺上の3点指定・断面可視化</span>
         </div>
       </div>
 
       <div class="header-modes">
+        <!-- 立体選択: 立方体 / 直方体 / 三角錐 -->
+        <div class="mode-switcher" role="tablist" aria-label="立体選択">
+          <button id="solidCubeBtn" class="mode-btn solid-btn active" data-solid="cube" type="button" title="立方体（正六面体）">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            </svg>
+            立方体
+          </button>
+          <button id="solidCuboidBtn" class="mode-btn solid-btn" data-solid="cuboid" type="button" title="直方体（横12cm×奥行9cm×高さ8cm）">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <rect x="2" y="7" width="15" height="11" rx="1"/>
+              <path d="M7 7l5-3h10v11l-5 3"/>
+            </svg>
+            直方体
+          </button>
+          <button id="solidTetraBtn" class="mode-btn solid-btn" data-solid="tetrahedron" type="button" title="三角錐（正四面体 ABCD）">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <polygon points="12 3 3 19 21 19"/>
+              <line x1="12" y1="3" x2="14" y2="19"/>
+            </svg>
+            三角錐
+          </button>
+        </div>
+
         <!-- 投影モード切替: 3D vs 見取り図 -->
         <div class="mode-switcher" role="tablist" aria-label="投影モード切替">
           <button id="mode3dBtn" class="mode-btn active" type="button" title="3D空間で自由に回転">
@@ -730,7 +755,7 @@
             </button>
           </div>
           <div id="modeHintText" class="hint-pill">
-            💡 点P・Q・Rをドラッグで移動 ／ 辺（立方体・切り口）をクリックで延長線の表示・非表示 ／ 背景ドラッグで3D回転
+            💡 点P・Q・Rをドラッグで移動 ／ 辺（立体・切り口）をクリックで延長線の表示・非表示 ／ 背景ドラッグで3D回転
           </div>
         </div>
 
@@ -789,46 +814,13 @@
           <div class="section-header">
             <span class="section-title">代表的な切り口プリセット</span>
           </div>
-          <div class="preset-grid">
-            <button class="preset-btn" data-preset="equilateral">
-              <span>正三角形</span>
-              <span class="preset-tag">3角形</span>
-            </button>
-            <button class="preset-btn" data-preset="isosceles">
-              <span>二等辺三角形</span>
-              <span class="preset-tag">3角形</span>
-            </button>
-            <button class="preset-btn" data-preset="square">
-              <span>正方形（水平）</span>
-              <span class="preset-tag">4角形</span>
-            </button>
-            <button class="preset-btn" data-preset="rectangle">
-              <span>長方形（対角）</span>
-              <span class="preset-tag">4角形</span>
-            </button>
-            <button class="preset-btn" data-preset="trapezoid">
-              <span>等脚台形</span>
-              <span class="preset-tag">4角形</span>
-            </button>
-            <button class="preset-btn" data-preset="rhombus">
-              <span>ひし形</span>
-              <span class="preset-tag">4角形</span>
-            </button>
-            <button class="preset-btn" data-preset="pentagon">
-              <span>五角形</span>
-              <span class="preset-tag">5角形</span>
-            </button>
-            <button class="preset-btn" data-preset="hexagon">
-              <span>正六角形</span>
-              <span class="preset-tag">6角形</span>
-            </button>
-          </div>
+          <div id="presetGrid" class="preset-grid"></div>
         </div>
 
         <!-- Section Summary & Properties (通常モード時) -->
         <div id="autoStatsSection" class="panel-section">
           <div class="section-header">
-            <span class="section-title">切り口のデータ（1辺 = 10cm 換算）</span>
+            <span id="statsSectionTitle" class="section-title">切り口のデータ（1辺 = 10cm 換算）</span>
           </div>
           <div class="info-card">
             <div class="stats-grid">
@@ -890,25 +882,51 @@
   </div>
 
   <script>
-    /**
-     * 立方体の頂点定義 (1辺の長さ 1)
-     * 上面 ABCD (y = 1):
-     *   A: 左奥 (0, 1, 0), B: 左手前 (0, 1, 1), C: 右手前 (1, 1, 1), D: 右奥 (1, 1, 0)
-     * 底面 EFGH (y = 0):
-     *   E: 左奥 (0, 0, 0), F: 左手前 (0, 0, 1), G: 右手前 (1, 0, 1), H: 右奥 (1, 0, 0)
-     */
-    const VERTICES = {
-      A: { id: 'A', x: 0, y: 1, z: 0 },
-      B: { id: 'B', x: 0, y: 1, z: 1 },
-      C: { id: 'C', x: 1, y: 1, z: 1 },
-      D: { id: 'D', x: 1, y: 1, z: 0 },
-      E: { id: 'E', x: 0, y: 0, z: 0 },
-      F: { id: 'F', x: 0, y: 0, z: 1 },
-      G: { id: 'G', x: 1, y: 0, z: 1 },
-      H: { id: 'H', x: 1, y: 0, z: 0 },
-    };
+    // Vector Math Helpers
+    function vecSub(a, b) { return { x: a.x - b.x, y: a.y - b.y, z: a.z - b.z }; }
+    function vecAdd(a, b) { return { x: a.x + b.x, y: a.y + b.y, z: a.z + b.z }; }
+    function vecScale(a, s) { return { x: a.x * s, y: a.y * s, z: a.z * s }; }
+    function vecDot(a, b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
+    function vecCross(a, b) {
+      return {
+        x: a.y * b.z - a.z * b.y,
+        y: a.z * b.x - a.x * b.z,
+        z: a.x * b.y - a.y * b.x,
+      };
+    }
+    function vecLen(a) { return Math.hypot(a.x, a.y, a.z); }
+    function vecNorm(a) {
+      const len = vecLen(a);
+      return len < 1e-9 ? { x: 0, y: 0, z: 0 } : { x: a.x / len, y: a.y / len, z: a.z / len };
+    }
+    function vecDist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z); }
 
-    const EDGES = [
+    // 面の頂点座標と立体中心から、外向き単位法線ベクトルと平面定数 planeD を自動計算
+    function buildFacesWithNormals(vertices, rawFaces) {
+      const vKeys = Object.keys(vertices);
+      const center = vKeys.reduce(
+        (acc, k) => ({
+          x: acc.x + vertices[k].x / vKeys.length,
+          y: acc.y + vertices[k].y / vKeys.length,
+          z: acc.z + vertices[k].z / vKeys.length,
+        }),
+        { x: 0, y: 0, z: 0 }
+      );
+      return rawFaces.map(f => {
+        const p0 = vertices[f.verts[0]];
+        const p1 = vertices[f.verts[1]];
+        const p2 = vertices[f.verts[2]];
+        let n = vecNorm(vecCross(vecSub(p1, p0), vecSub(p2, p0)));
+        if (vecDot(n, vecSub(p0, center)) < 0) {
+          n = { x: -n.x, y: -n.y, z: -n.z };
+        }
+        const planeD = vecDot(n, p0);
+        return { ...f, normal: n, planeD };
+      });
+    }
+
+    // 共通の6面体（立方体・直方体）の辺・面構造
+    const BOX_EDGES = [
       // 上面
       { id: 'AB', v1: 'A', v2: 'B', group: '上面' },
       { id: 'BC', v1: 'B', v2: 'C', group: '上面' },
@@ -926,17 +944,234 @@
       { id: 'HE', v1: 'H', v2: 'E', group: '底面' },
     ];
 
-    // 6つの面（外向き法線と頂点ループ）
-    const FACES = [
-      { id: 'TOP',    verts: ['A', 'B', 'C', 'D'], normal: { x: 0, y: 1, z: 0 },  edges: ['AB', 'BC', 'CD', 'DA'] },
-      { id: 'BOTTOM', verts: ['E', 'H', 'G', 'F'], normal: { x: 0, y: -1, z: 0 }, edges: ['EF', 'FG', 'GH', 'HE'] },
-      { id: 'FRONT',  verts: ['B', 'F', 'G', 'C'], normal: { x: 0, y: 0, z: 1 },  edges: ['BC', 'CG', 'FG', 'BF'] },
-      { id: 'BACK',   verts: ['A', 'D', 'H', 'E'], normal: { x: 0, y: 0, z: -1 }, edges: ['DA', 'DH', 'HE', 'AE'] },
-      { id: 'LEFT',   verts: ['A', 'E', 'F', 'B'], normal: { x: -1, y: 0, z: 0 }, edges: ['AB', 'BF', 'EF', 'AE'] },
-      { id: 'RIGHT',  verts: ['D', 'C', 'G', 'H'], normal: { x: 1, y: 0, z: 0 },  edges: ['CD', 'CG', 'GH', 'DH'] },
+    const BOX_RAW_FACES = [
+      { id: 'TOP',    verts: ['A', 'B', 'C', 'D'], edges: ['AB', 'BC', 'CD', 'DA'] },
+      { id: 'BOTTOM', verts: ['E', 'H', 'G', 'F'], edges: ['EF', 'FG', 'GH', 'HE'] },
+      { id: 'FRONT',  verts: ['B', 'F', 'G', 'C'], edges: ['BC', 'CG', 'FG', 'BF'] },
+      { id: 'BACK',   verts: ['A', 'D', 'H', 'E'], edges: ['DA', 'DH', 'HE', 'AE'] },
+      { id: 'LEFT',   verts: ['A', 'E', 'F', 'B'], edges: ['AB', 'BF', 'EF', 'AE'] },
+      { id: 'RIGHT',  verts: ['D', 'C', 'G', 'H'], edges: ['CD', 'CG', 'GH', 'DH'] },
     ];
 
-    // 見取り図の斜投影プリセット（常に上面ABCDが見える標準的な斜め上からの視点）
+    // 三角錐（正四面体 ABCD, 1辺の長さ 1.0）の頂点生成
+    const TETRA_R = 1 / Math.sqrt(3);
+    const tetraBasePt = (deg) => {
+      const th = (deg * Math.PI) / 180;
+      return { x: 0.5 + TETRA_R * Math.cos(th), y: 0.1, z: 0.5 + TETRA_R * Math.sin(th) };
+    };
+    const TETRA_VERTICES = {
+      A: { id: 'A', x: 0.5, y: 0.1 + Math.sqrt(2 / 3), z: 0.5 },
+      B: { id: 'B', ...tetraBasePt(172) },
+      C: { id: 'C', ...tetraBasePt(52) },
+      D: { id: 'D', ...tetraBasePt(292) },
+    };
+
+    // 3種類の立体データ定義（立方体・直方体・三角錐）
+    const SOLIDS = {
+      cube: {
+        id: 'cube',
+        label: '立方体',
+        title: '立方体の切り口シミュレーター',
+        statsTitle: '切り口のデータ（1辺 = 10cm 換算）',
+        vertexToggleLabel: '頂点ラベル (A〜H)',
+        mitorizuRotLabels: ['正面 (BCGF)', '右面 (CDHG)', '背面 (DAEH)', '左面 (ABFE)'],
+        vertices: {
+          A: { id: 'A', x: 0, y: 1, z: 0 },
+          B: { id: 'B', x: 0, y: 1, z: 1 },
+          C: { id: 'C', x: 1, y: 1, z: 1 },
+          D: { id: 'D', x: 1, y: 1, z: 0 },
+          E: { id: 'E', x: 0, y: 0, z: 0 },
+          F: { id: 'F', x: 0, y: 0, z: 1 },
+          G: { id: 'G', x: 1, y: 0, z: 1 },
+          H: { id: 'H', x: 1, y: 0, z: 0 },
+        },
+        edges: BOX_EDGES,
+        rawFaces: BOX_RAW_FACES,
+        defaultPreset: 'equilateral',
+        presetList: [
+          { key: 'equilateral', label: '正三角形', tag: '3角形' },
+          { key: 'isosceles', label: '二等辺三角形', tag: '3角形' },
+          { key: 'square', label: '正方形（水平）', tag: '4角形' },
+          { key: 'rectangle', label: '長方形（対角）', tag: '4角形' },
+          { key: 'trapezoid', label: '等脚台形', tag: '4角形' },
+          { key: 'rhombus', label: 'ひし形', tag: '4角形' },
+          { key: 'pentagon', label: '五角形', tag: '5角形' },
+          { key: 'hexagon', label: '正六角形', tag: '6角形' },
+        ],
+        presets: {
+          equilateral: {
+            points: [{ edgeId: 'AB', t: 0.5 }, { edgeId: 'BC', t: 0.5 }, { edgeId: 'BF', t: 0.5 }],
+            desc: '1つの頂点Bに集まる3辺の中点（AB・BC・BFの中点）を通る平面で切断すると、3辺の長さが等しい「正三角形」になります。'
+          },
+          isosceles: {
+            points: [{ edgeId: 'AB', t: 0.5 }, { edgeId: 'BC', t: 0.5 }, { edgeId: 'BF', t: 1.0 }],
+            desc: '辺AB・BCの中点と頂点Fを通る平面で切断すると、2辺の長さが等しい「二等辺三角形」になります。'
+          },
+          square: {
+            points: [{ edgeId: 'AE', t: 0.5 }, { edgeId: 'BF', t: 0.5 }, { edgeId: 'CG', t: 0.5 }],
+            desc: '底面に平行な平面（縦の辺AE・BF・CGの中点）で切断すると、切り口は元の面と合同な「正方形」になります。'
+          },
+          rectangle: {
+            points: [{ edgeId: 'AB', t: 0.0 }, { edgeId: 'CD', t: 0.0 }, { edgeId: 'FG', t: 1.0 }],
+            desc: '向かい合う辺（頂点A・C・G）を通る対角面で切断すると、縦と横の長さが 1 : √2 の「長方形」になります。'
+          },
+          trapezoid: {
+            points: [{ edgeId: 'AB', t: 0.5 }, { edgeId: 'BC', t: 0.5 }, { edgeId: 'FG', t: 1.0 }],
+            desc: '辺AB・BCの中点と頂点G（および頂点E）を通る平面で切断すると、PQ // EG かつ脚の長さが等しい「等脚台形」になります。'
+          },
+          rhombus: {
+            points: [{ edgeId: 'AE', t: 0.5 }, { edgeId: 'BF', t: 1.0 }, { edgeId: 'CG', t: 0.5 }],
+            desc: '辺AE・CGの中点と頂点F（および頂点D）を通る平面で切断すると、4辺の長さがすべて等しい「ひし形」になります。'
+          },
+          pentagon: {
+            points: [{ edgeId: 'AB', t: 0.5 }, { edgeId: 'BC', t: 0.5 }, { edgeId: 'DH', t: 1.0 }],
+            desc: '辺AB・BCの中点と頂点Hを通る平面で切断すると、5つの面（上面・左面・正面・右面・奥面）を横切る左右対称な「五角形」になります。'
+          },
+          hexagon: {
+            points: [{ edgeId: 'AB', t: 0.5 }, { edgeId: 'BC', t: 0.5 }, { edgeId: 'HE', t: 0.5 }],
+            desc: '互いに隣り合わない辺の中点（AB・BC・CG・GH・HE・AEの6辺の中点）を通る平面で切断すると、「正六角形」が現れます。'
+          },
+        },
+      },
+
+      cuboid: {
+        id: 'cuboid',
+        label: '直方体',
+        title: '直方体の切り口シミュレーター',
+        statsTitle: '切り口のデータ（横12cm×奥行9cm×高さ8cm）',
+        vertexToggleLabel: '頂点ラベル (A〜H)',
+        mitorizuRotLabels: ['正面 (BCGF)', '右面 (CDHG)', '背面 (DAEH)', '左面 (ABFE)'],
+        vertices: {
+          A: { id: 'A', x: -0.1, y: 0.9, z: 0.05 },
+          B: { id: 'B', x: -0.1, y: 0.9, z: 0.95 },
+          C: { id: 'C', x:  1.1, y: 0.9, z: 0.95 },
+          D: { id: 'D', x:  1.1, y: 0.9, z: 0.05 },
+          E: { id: 'E', x: -0.1, y: 0.1, z: 0.05 },
+          F: { id: 'F', x: -0.1, y: 0.1, z: 0.95 },
+          G: { id: 'G', x:  1.1, y: 0.1, z: 0.95 },
+          H: { id: 'H', x:  1.1, y: 0.1, z: 0.05 },
+        },
+        edges: BOX_EDGES,
+        rawFaces: BOX_RAW_FACES,
+        defaultPreset: 'triangle',
+        presetList: [
+          { key: 'triangle', label: '三角形（頂点B付近）', tag: '3角形' },
+          { key: 'tri_f', label: '三角形（頂点F通過）', tag: '3角形' },
+          { key: 'rect_h', label: '長方形（水平）', tag: '4角形' },
+          { key: 'rect_d', label: '長方形（対角面）', tag: '4角形' },
+          { key: 'trapezoid', label: '台形', tag: '4角形' },
+          { key: 'parallelogram', label: '平行四辺形', tag: '4角形' },
+          { key: 'pentagon', label: '五角形', tag: '5角形' },
+          { key: 'hexagon', label: '六角形', tag: '6角形' },
+        ],
+        presets: {
+          triangle: {
+            points: [{ edgeId: 'AB', t: 0.5 }, { edgeId: 'BC', t: 0.5 }, { edgeId: 'BF', t: 0.5 }],
+            desc: '直方体の頂点Bに集まる3辺の中点を通る平面で切断すると、3辺の長さが異なる「三角形（不等辺三角形）」になります。'
+          },
+          tri_f: {
+            points: [{ edgeId: 'AB', t: 0.5 }, { edgeId: 'BC', t: 0.5 }, { edgeId: 'BF', t: 1.0 }],
+            desc: '辺AB・BCの中点と頂点Fを通る平面で切断すると、頂点B側の角を切り取る「三角形」の断面になります。'
+          },
+          rect_h: {
+            points: [{ edgeId: 'AE', t: 0.5 }, { edgeId: 'BF', t: 0.5 }, { edgeId: 'CG', t: 0.5 }],
+            desc: '底面に平行な平面（縦の辺AE・BF・CGの中点）で切断すると、底面と合同な「長方形（12cm×9cm）」になります。'
+          },
+          rect_d: {
+            points: [{ edgeId: 'AB', t: 0.0 }, { edgeId: 'CD', t: 0.0 }, { edgeId: 'FG', t: 1.0 }],
+            desc: '向かい合う辺（頂点A・C・G）を通る対角面で切断すると、対角線15cm×高さ8cmの「長方形」になります。'
+          },
+          trapezoid: {
+            points: [{ edgeId: 'AB', t: 0.5 }, { edgeId: 'BC', t: 0.5 }, { edgeId: 'FG', t: 1.0 }],
+            desc: '辺AB・BCの中点と頂点G（および頂点E）を通る平面で切断すると、上面の切り口と底面の対角線が平行な「台形」になります。'
+          },
+          parallelogram: {
+            points: [{ edgeId: 'AE', t: 0.5 }, { edgeId: 'BF', t: 1.0 }, { edgeId: 'CG', t: 0.5 }],
+            desc: '向かい合う側辺AE・CGの中点と頂点F（および頂点D）を通る平面で切断すると、向かい合う辺が平行な「平行四辺形」になります。'
+          },
+          pentagon: {
+            points: [{ edgeId: 'AB', t: 0.5 }, { edgeId: 'BC', t: 0.5 }, { edgeId: 'DH', t: 1.0 }],
+            desc: '辺AB・BCの中点と頂点Hを通る平面で切断すると、5つの面を横切る「五角形」になります。'
+          },
+          hexagon: {
+            points: [{ edgeId: 'AB', t: 0.5 }, { edgeId: 'BC', t: 0.5 }, { edgeId: 'HE', t: 0.5 }],
+            desc: '6つの辺（AB・BC・CG・GH・HE・AE）の中点を通る平面で切断すると、向かい合う辺がそれぞれ平行な「六角形」になります。'
+          },
+        },
+      },
+
+      tetrahedron: {
+        id: 'tetrahedron',
+        label: '三角錐',
+        title: '三角錐の切り口シミュレーター',
+        statsTitle: '切り口のデータ（正四面体 1辺 = 10cm 換算）',
+        vertexToggleLabel: '頂点ラベル (A〜D)',
+        mitorizuRotLabels: ['正面 (標準)', '右回転 (90°)', '背面 (180°)', '左回転 (270°)'],
+        vertices: TETRA_VERTICES,
+        edges: [
+          { id: 'AB', v1: 'A', v2: 'B', group: '側辺' },
+          { id: 'AC', v1: 'A', v2: 'C', group: '側辺' },
+          { id: 'AD', v1: 'A', v2: 'D', group: '側辺' },
+          { id: 'BC', v1: 'B', v2: 'C', group: '底面' },
+          { id: 'CD', v1: 'C', v2: 'D', group: '底面' },
+          { id: 'DB', v1: 'D', v2: 'B', group: '底面' },
+        ],
+        rawFaces: [
+          { id: 'ABC', verts: ['A', 'B', 'C'], edges: ['AB', 'BC', 'AC'] },
+          { id: 'ACD', verts: ['A', 'C', 'D'], edges: ['AC', 'CD', 'AD'] },
+          { id: 'ADB', verts: ['A', 'D', 'B'], edges: ['AD', 'DB', 'AB'] },
+          { id: 'BCD', verts: ['B', 'D', 'C'], edges: ['BC', 'CD', 'DB'] },
+        ],
+        defaultPreset: 'equilateral_h',
+        presetList: [
+          { key: 'equilateral_h', label: '正三角形（底面平行）', tag: '3角形' },
+          { key: 'equilateral_s', label: '正三角形（側面平行）', tag: '3角形' },
+          { key: 'isosceles_v', label: '二等辺三角形（頂点通過）', tag: '3角形' },
+          { key: 'square_mid', label: '正方形（4辺の中点）', tag: '4角形' },
+          { key: 'rectangle', label: '長方形（対辺に平行）', tag: '4角形' },
+          { key: 'trapezoid', label: '等脚台形', tag: '4角形' },
+        ],
+        presets: {
+          equilateral_h: {
+            points: [{ edgeId: 'AB', t: 0.5 }, { edgeId: 'AC', t: 0.5 }, { edgeId: 'AD', t: 0.5 }],
+            desc: '頂点Aから出る3つの側辺（AB・AC・AD）の中点を通る平面で切断すると、底面BCDに平行な1辺5cmの「正三角形」になります。'
+          },
+          equilateral_s: {
+            points: [{ edgeId: 'AB', t: 0.5 }, { edgeId: 'BC', t: 0.5 }, { edgeId: 'DB', t: 0.5 }],
+            desc: '頂点Bに集まる3辺（AB・BC・DB）の中点を通る平面で切断すると、奥の面ACDに平行な「正三角形」になります。'
+          },
+          isosceles_v: {
+            points: [{ edgeId: 'AB', t: 0.5 }, { edgeId: 'AC', t: 0.5 }, { edgeId: 'AD', t: 1.0 }],
+            desc: '辺AB・ACの中点と頂点Dを通る平面で切断すると、2辺の長さが等しい「二等辺三角形」になります。'
+          },
+          square_mid: {
+            points: [{ edgeId: 'AB', t: 0.5 }, { edgeId: 'AC', t: 0.5 }, { edgeId: 'CD', t: 0.5 }],
+            desc: 'ねじれの位置にある対辺AD・BCに平行な4辺（AB・AC・CD・DB）の中点を通る平面で切断すると、1辺5cmの「正方形」になります。'
+          },
+          rectangle: {
+            points: [{ edgeId: 'AB', t: 0.25 }, { edgeId: 'AC', t: 0.25 }, { edgeId: 'CD', t: 0.75 }],
+            desc: '辺AB・ACを1:3に分ける点と辺CD・DBを3:1に分ける点を通る平面で切断すると、対辺AD・BCに平行な「長方形」になります。'
+          },
+          trapezoid: {
+            points: [{ edgeId: 'AB', t: 0.5 }, { edgeId: 'AC', t: 0.5 }, { edgeId: 'CD', t: 0.25 }],
+            desc: '辺AB・ACの中点（辺BCに平行）と辺CD上の点を通る平面で切断すると、上底と下底が辺BCに平行な「等脚台形」になります。'
+          },
+        },
+      },
+    };
+
+    // 各立体の面に外向き法線と planeD を付与
+    Object.values(SOLIDS).forEach(solid => {
+      solid.faces = buildFacesWithNormals(solid.vertices, solid.rawFaces);
+    });
+
+    // 現在選択されている立体の参照（切り替え時に更新）
+    let VERTICES = SOLIDS.cube.vertices;
+    let EDGES = SOLIDS.cube.edges;
+    let FACES = SOLIDS.cube.faces;
+    let PRESETS = SOLIDS.cube.presets;
+
+    // 見取り図の斜投影プリセット（常に上面または手前が見える標準的な斜め上からの視点）
     const MITORIZU_VIEWPOINTS = [
       { id: 0, label: '右上奥 (標準)', dirX: 1,  dirY: 1 },
       { id: 1, label: '左上奥',       dirX: -1, dirY: 1 },
@@ -944,6 +1179,7 @@
 
     // アプリの状態
     const state = {
+      solidType: 'cube', // 'cube' | 'cuboid' | 'tetrahedron'
       appMode: 'auto', // 'auto' (通常表示) | 'draw' (切り口を書くモード)
       viewMode: '3d', // '3d' | 'mitorizu'
       activePointIndex: 0, // 0: P, 1: Q, 2: R
@@ -958,7 +1194,7 @@
       },
       mitorizu: {
         vpIndex: 0,    // 0: 右上奥 (標準), 1: 左上奥
-        rotQuarter: 0, // 0: 正面(BCGF), 1: 右面(CDHG), 2: 背面(DAEH), 3: 左面(ABFE)
+        rotQuarter: 0, // 0: 正面, 1: 右90°, 2: 背面180°, 3: 左270°
       },
       options: {
         showVertices: true,
@@ -972,8 +1208,8 @@
         rubberbandPos: null, // { x, y }
         pendingPointAction: null, // { point, pointIndex, downX, downY, dragged }
       },
-      extendedCubeEdges: new Set(),  // クリックで選択された立方体の辺ID ('AB', 'EF', etc.)
-      extendedSectionFaces: new Set(), // クリックで選択された切り口の辺 (faceId: 'TOP', 'FRONT', etc.)
+      extendedCubeEdges: new Set(),  // クリックで選択された立体の辺ID
+      extendedSectionFaces: new Set(), // クリックで選択された切り口の辺
       dragging: {
         type: null, // 'point' | 'camera'
         pointIndex: -1,
@@ -986,79 +1222,15 @@
       hoverDrawnSegment: null,
     };
 
-    const PRESETS = {
-      equilateral: {
-        points: [
-          { edgeId: 'AB', t: 0.5 },
-          { edgeId: 'BC', t: 0.5 },
-          { edgeId: 'BF', t: 0.5 },
-        ],
-        desc: '1つの頂点Bに集まる3辺の中点（AB・BC・BFの中点）を通る平面で切断すると、3辺の長さが等しい「正三角形」になります。'
-      },
-      isosceles: {
-        points: [
-          { edgeId: 'AB', t: 0.5 },
-          { edgeId: 'BC', t: 0.5 },
-          { edgeId: 'BF', t: 1.0 },
-        ],
-        desc: '辺AB・BCの中点と頂点Fを通る平面で切断すると、2辺の長さが等しい「二等辺三角形」になります。'
-      },
-      square: {
-        points: [
-          { edgeId: 'AE', t: 0.5 },
-          { edgeId: 'BF', t: 0.5 },
-          { edgeId: 'CG', t: 0.5 },
-        ],
-        desc: '底面に平行な平面（縦の辺AE・BF・CGの中点）で切断すると、切り口は元の面と合同な「正方形」になります。'
-      },
-      rectangle: {
-        points: [
-          { edgeId: 'AB', t: 0.0 },
-          { edgeId: 'CD', t: 0.0 },
-          { edgeId: 'FG', t: 1.0 },
-        ],
-        desc: '向かい合う辺（頂点A・C・G）を通る対角面で切断すると、縦と横の長さが 1 : √2 の「長方形」になります。'
-      },
-      trapezoid: {
-        points: [
-          { edgeId: 'AB', t: 0.5 },
-          { edgeId: 'BC', t: 0.5 },
-          { edgeId: 'FG', t: 1.0 },
-        ],
-        desc: '辺AB・BCの中点と頂点G（および頂点E）を通る平面で切断すると、PQ // EG かつ脚の長さが等しい「等脚台形」になります。'
-      },
-      rhombus: {
-        points: [
-          { edgeId: 'AE', t: 0.5 },
-          { edgeId: 'BF', t: 1.0 },
-          { edgeId: 'CG', t: 0.5 },
-        ],
-        desc: '辺AE・CGの中点と頂点F（および頂点D）を通る平面で切断すると、4辺の長さがすべて等しい「ひし形」になります。'
-      },
-      pentagon: {
-        points: [
-          { edgeId: 'AB', t: 0.5 },
-          { edgeId: 'BC', t: 0.5 },
-          { edgeId: 'DH', t: 1.0 },
-        ],
-        desc: '辺AB・BCの中点と頂点Hを通る平面で切断すると、5つの面（上面・左面・正面・右面・奥面）を横切る左右対称な「五角形」になります。'
-      },
-      hexagon: {
-        points: [
-          { edgeId: 'AB', t: 0.5 },
-          { edgeId: 'BC', t: 0.5 },
-          { edgeId: 'HE', t: 0.5 },
-        ],
-        desc: '互いに隣り合わない辺の中点（AB・BC・CG・GH・HE・AEの6辺の中点）を通る平面で切断すると、「正六角形」が現れます。'
-      }
-    };
-
     // DOM Elements
     const mainCanvas = document.getElementById('mainCanvas');
     const ctx = mainCanvas.getContext('2d');
     const trueShapeCanvas = document.getElementById('trueShapeCanvas');
     const tsCtx = trueShapeCanvas.getContext('2d');
     const pointCardsContainer = document.getElementById('pointCardsContainer');
+    const presetGrid = document.getElementById('presetGrid');
+    const brandTitle = document.getElementById('brandTitle');
+    const statsSectionTitle = document.getElementById('statsSectionTitle');
     const clearExtensionsBtn = document.getElementById('clearExtensionsBtn');
     const mitorizuViewBar = document.getElementById('mitorizuViewBar');
     const modeAutoBtn = document.getElementById('modeAutoBtn');
@@ -1080,27 +1252,8 @@
     const sideCheckAnswerBtn = document.getElementById('sideCheckAnswerBtn');
     const sideCheckAnswerLabel = document.getElementById('sideCheckAnswerLabel');
 
-    // Vector Math Helpers
-    function vecSub(a, b) { return { x: a.x - b.x, y: a.y - b.y, z: a.z - b.z }; }
-    function vecAdd(a, b) { return { x: a.x + b.x, y: a.y + b.y, z: a.z + b.z }; }
-    function vecScale(a, s) { return { x: a.x * s, y: a.y * s, z: a.z * s }; }
-    function vecDot(a, b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
-    function vecCross(a, b) {
-      return {
-        x: a.y * b.z - a.z * b.y,
-        y: a.z * b.x - a.x * b.z,
-        z: a.x * b.y - a.y * b.x,
-      };
-    }
-    function vecLen(a) { return Math.hypot(a.x, a.y, a.z); }
-    function vecNorm(a) {
-      const len = vecLen(a);
-      return len < 1e-9 ? { x: 0, y: 0, z: 0 } : { x: a.x / len, y: a.y / len, z: a.z / len };
-    }
-    function vecDist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z); }
-
     function getEdgeById(edgeId) {
-      return EDGES.find(e => e.id === edgeId);
+      return EDGES.find(e => e.id === edgeId) || EDGES[0];
     }
 
     function getPointOnEdge3D(edgeId, t) {
@@ -1126,7 +1279,63 @@
       return `${Math.round(t * 100)}%`;
     }
 
-    // 3点 P, Q, R から平面と立方体の切り口多角形を計算
+    // 2点間線分が属する立体の面ID配列を返す（任意の凸多面体対応）
+    function detectSegmentFaces(pA, pB) {
+      const eps = 1.8e-3;
+      const faces = [];
+      for (const face of FACES) {
+        const dA = Math.abs(vecDot(face.normal, pA) - face.planeD);
+        const dB = Math.abs(vecDot(face.normal, pB) - face.planeD);
+        if (dA < eps && dB < eps) {
+          faces.push(face.id);
+        }
+      }
+      return faces;
+    }
+
+    // 点が現在の凸多面体の内部・表面上にあるか判定
+    function isPointOnOrInCube(pt, eps = 2.5e-3) {
+      for (const face of FACES) {
+        if (vecDot(face.normal, pt) - face.planeD > eps) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    // 線分 pA -> pB を現在の凸多面体でクリッピング（Cyrus-Beck法）し、内部区間 [t0, t1] と3D端点を返す
+    function clipSegmentToCube(pA, pB) {
+      const dir = vecSub(pB, pA);
+      let t0 = 0.0;
+      let t1 = 1.0;
+      const eps = 1e-4;
+
+      for (const face of FACES) {
+        const distA = vecDot(face.normal, pA) - face.planeD;
+        const denom = vecDot(face.normal, dir);
+        if (Math.abs(denom) < 1e-7) {
+          if (distA > eps) return null;
+        } else {
+          const tHit = -distA / denom;
+          if (denom > 0) {
+            if (tHit < t1) t1 = tHit;
+          } else {
+            if (tHit > t0) t0 = tHit;
+          }
+          if (t0 > t1 + eps) return null;
+        }
+      }
+
+      t0 = Math.max(0, Math.min(1, t0));
+      t1 = Math.max(0, Math.min(1, t1));
+      if (t1 - t0 < 1e-3) return null;
+
+      const cA = vecAdd(pA, vecScale(dir, t0));
+      const cB = vecAdd(pA, vecScale(dir, t1));
+      return { t0, t1, cA, cB, onFaces: detectSegmentFaces(cA, cB) };
+    }
+
+    // 3点 P, Q, R から平面と立体の切り口多角形を計算
     function computeCrossSection() {
       const p3d = state.points.map(pt => ({
         ...getPointOnEdge3D(pt.edgeId, pt.t),
@@ -1195,7 +1404,7 @@
       if (uniquePts.length < 3) {
         return {
           valid: false,
-          reason: '平面が立方体の内部を横切っていません（頂点または辺のみに接しています）。',
+          reason: '平面が立体の内部を横切っていません（頂点または辺のみに接しています）。',
           userPoints: p3d,
           polygon: uniquePts,
           segments: [],
@@ -1224,18 +1433,7 @@
       for (let i = 0; i < sortedPolygon.length; i++) {
         const pA = sortedPolygon[i];
         const pB = sortedPolygon[(i + 1) % sortedPolygon.length];
-        const mid = vecScale(vecAdd(pA, pB), 0.5);
-
-        // この線分（切り口の辺）が乗っている立方体の面をすべて求める
-        // （面の内部を横切る場合は1つ、立方体の辺そのものに重なる場合は2つ、内部対角線などの場合は0個）
-        const onFaces = [];
-        if (Math.abs(mid.y - 1) < 1e-4) onFaces.push('TOP');
-        if (Math.abs(mid.y) < 1e-4)     onFaces.push('BOTTOM');
-        if (Math.abs(mid.z - 1) < 1e-4) onFaces.push('FRONT');
-        if (Math.abs(mid.z) < 1e-4)     onFaces.push('BACK');
-        if (Math.abs(mid.x) < 1e-4)     onFaces.push('LEFT');
-        if (Math.abs(mid.x - 1) < 1e-4) onFaces.push('RIGHT');
-
+        const onFaces = detectSegmentFaces(pA, pB);
         const segId = onFaces.length > 0 ? onFaces.join('_') : `SEG_${i}`;
         sectionSegments.push({ id: segId, pA, pB, onFaces, length: vecDist(pA, pB) });
       }
@@ -1350,53 +1548,6 @@
       };
     }
 
-    // 2点間線分が属する立方体の面ID配列を返す
-    function detectSegmentFaces(pA, pB) {
-      const eps = 1e-3;
-      const faces = [];
-      if (Math.abs(pA.y - 1) < eps && Math.abs(pB.y - 1) < eps) faces.push('TOP');
-      if (Math.abs(pA.y - 0) < eps && Math.abs(pB.y - 0) < eps) faces.push('BOTTOM');
-      if (Math.abs(pA.z - 1) < eps && Math.abs(pB.z - 1) < eps) faces.push('FRONT');
-      if (Math.abs(pA.z - 0) < eps && Math.abs(pB.z - 0) < eps) faces.push('BACK');
-      if (Math.abs(pA.x - 0) < eps && Math.abs(pB.x - 0) < eps) faces.push('LEFT');
-      if (Math.abs(pA.x - 1) < eps && Math.abs(pB.x - 1) < eps) faces.push('RIGHT');
-      return faces;
-    }
-
-    // 線分 pA -> pB を立方体 [0, 1]^3 でクリッピングし、内部区間 [t0, t1] と3D端点を返す
-    function clipSegmentToCube(pA, pB) {
-      const dx = pB.x - pA.x;
-      const dy = pB.y - pA.y;
-      const dz = pB.z - pA.z;
-      let t0 = 0.0;
-      let t1 = 1.0;
-      const eps = 1e-4;
-
-      const clip1D = (p, d) => {
-        if (Math.abs(d) < 1e-7) {
-          return p >= -eps && p <= 1 + eps;
-        }
-        const r1 = (0 - p) / d;
-        const r2 = (1 - p) / d;
-        const tEnter = Math.min(r1, r2);
-        const tLeave = Math.max(r1, r2);
-        if (tEnter > t0) t0 = tEnter;
-        if (tLeave < t1) t1 = tLeave;
-        return t0 <= t1 + eps;
-      };
-
-      if (!clip1D(pA.x, dx) || !clip1D(pA.y, dy) || !clip1D(pA.z, dz)) {
-        return null;
-      }
-      t0 = Math.max(0, Math.min(1, t0));
-      t1 = Math.max(0, Math.min(1, t1));
-      if (t1 - t0 < 1e-3) return null;
-
-      const cA = { x: pA.x + dx * t0, y: pA.y + dy * t0, z: pA.z + dz * t0 };
-      const cB = { x: pA.x + dx * t1, y: pA.y + dy * t1, z: pA.z + dz * t1 };
-      return { t0, t1, cA, cB, onFaces: detectSegmentFaces(cA, cB) };
-    }
-
     // 3D空間の2直線 A1+t1*(B1-A1) と A2+t2*(B2-A2) の交点（同一平面上かつ非平行）を求める
     function intersectLines3D(A1, B1, A2, B2) {
       const d1 = vecSub(B1, A1);
@@ -1422,15 +1573,6 @@
       if (centerDist > 3.8) return null; // 画面外遠方の交点は除外
 
       return { pt3d, t1, t2 };
-    }
-
-    // 点が立方体 [0, 1]^3 の内部・表面上にあるか判定
-    function isPointOnOrInCube(pt, eps = 2e-3) {
-      return (
-        pt.x >= -eps && pt.x <= 1 + eps &&
-        pt.y >= -eps && pt.y <= 1 + eps &&
-        pt.z >= -eps && pt.z <= 1 + eps
-      );
     }
 
     // 作図モード用：選択可能な点・交点・延長線の描画範囲を計算
@@ -2464,9 +2606,11 @@
 
         const groups = ['上面', '側辺', '底面'];
         groups.forEach(gName => {
+          const groupEdges = EDGES.filter(e => e.group === gName);
+          if (groupEdges.length === 0) return;
           const optGroup = document.createElement('optgroup');
           optGroup.label = gName;
-          EDGES.filter(e => e.group === gName).forEach(edge => {
+          groupEdges.forEach(edge => {
             const opt = document.createElement('option');
             opt.value = edge.id;
             opt.textContent = `辺 ${edge.id} (${edge.v1}→${edge.v2})`;
@@ -3144,22 +3288,93 @@
     bindToggleChip('toggleSectionFillBtn', 'showSectionFill');
     bindToggleChip('toggleIntersectionsBtn', 'showIntersections');
 
-    // プリセットボタンの適用
-    document.querySelectorAll('.preset-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const key = btn.getAttribute('data-preset');
-        const preset = PRESETS[key];
-        if (!preset) return;
+    // 現在の立体に応じたプリセットボタン群を動的生成
+    function buildPresetButtons() {
+      const solid = SOLIDS[state.solidType];
+      presetGrid.innerHTML = '';
 
-        preset.points.forEach((p, idx) => {
+      solid.presetList.forEach(item => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'preset-btn';
+        btn.setAttribute('data-preset', item.key);
+        btn.innerHTML = `
+          <span>${item.label}</span>
+          <span class="preset-tag">${item.tag}</span>
+        `;
+        btn.addEventListener('click', () => {
+          const preset = PRESETS[item.key];
+          if (!preset) return;
+
+          preset.points.forEach((p, idx) => {
+            state.points[idx].edgeId = p.edgeId;
+            state.points[idx].t = p.t;
+          });
+
+          onPointsChanged();
+          document.getElementById('explanationText').textContent = preset.desc;
+          syncPointCardsUI();
+          render();
+        });
+        presetGrid.appendChild(btn);
+      });
+    }
+
+    // 立体の種類を切り替え（立方体 / 直方体 / 三角錐）
+    function setSolidType(solidType) {
+      const solid = SOLIDS[solidType];
+      if (!solid) return;
+
+      state.solidType = solidType;
+      VERTICES = solid.vertices;
+      EDGES = solid.edges;
+      FACES = solid.faces;
+      PRESETS = solid.presets;
+
+      // ヘッダーの立体ボタン活性状態を更新
+      document.querySelectorAll('.solid-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-solid') === solidType);
+      });
+
+      // タイトル・ラベル類の更新
+      brandTitle.textContent = solid.title;
+      statsSectionTitle.textContent = solid.statsTitle;
+      document.getElementById('toggleVerticesBtn').textContent = solid.vertexToggleLabel;
+
+      // 見取り図の回転ボタンラベル更新
+      document.querySelectorAll('.mitorizu-rot-btn').forEach((btn, idx) => {
+        if (solid.mitorizuRotLabels[idx]) {
+          btn.textContent = solid.mitorizuRotLabels[idx];
+        }
+      });
+
+      // 延長線・作図状態をリセットし、デフォルトプリセットの3点を適用
+      state.extendedCubeEdges.clear();
+      state.extendedSectionFaces.clear();
+      state.drawState.selectedPoint = null;
+      state.drawState.drawnSegments = [];
+      state.drawState.showAnswer = false;
+      state.hoverEdge = null;
+      state.hoverDrawPoint = null;
+      state.hoverDrawnSegment = null;
+
+      const defaultPreset = solid.presets[solid.defaultPreset];
+      if (defaultPreset) {
+        defaultPreset.points.forEach((p, idx) => {
           state.points[idx].edgeId = p.edgeId;
           state.points[idx].t = p.t;
         });
+        document.getElementById('explanationText').textContent = defaultPreset.desc;
+      }
 
-        onPointsChanged();
-        document.getElementById('explanationText').textContent = preset.desc;
-        syncPointCardsUI();
-        render();
+      buildPointCards();
+      buildPresetButtons();
+      render();
+    }
+
+    document.querySelectorAll('.solid-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        setSolidType(btn.getAttribute('data-solid'));
       });
     });
 
@@ -3169,8 +3384,7 @@
     });
 
     // 初期化
-    buildPointCards();
-    render();
+    setSolidType('cube');
   </script>
 </body>
 </html>
