@@ -446,6 +446,7 @@
         font-size: 20px;
       }
     }
+  .brand-section,.nav-actions{flex-shrink:0}.nav-tabs{min-width:0;overflow-x:auto;margin:0 12px}.nav-tab-btn{white-space:nowrap;flex-shrink:0}#hubView{justify-content:flex-start;overflow-y:auto}#hubView>.hub-header,#hubView>.app-cards-grid{flex-shrink:0}.card-solid::before{background:#087c73}.card-position::before{background:#7c3aed}.card-solid .card-icon,.card-solid .card-badge{background:#d8f3e9;color:#087c73}.card-position .card-icon,.card-position .card-badge{background:#ede5ff;color:#6837ba}.card-solid .card-btn{background:#087c73;color:white}.card-position .card-btn{background:#6837ba;color:white}.card-btn:focus-visible,.nav-tab-btn:focus-visible{outline:3px solid var(--accent);outline-offset:3px}@media(max-width:1100px){.brand-text p{display:none}.brand-text h1{font-size:15px}.nav-tab-btn{padding:6px 10px;font-size:12px}}@media(max-width:700px){header.portal-nav{height:auto;flex-basis:auto;min-height:90px;flex-wrap:wrap;padding:8px 12px;gap:8px}.nav-tabs{order:3;flex-basis:100%;margin:0}.brand-logo{width:27px;height:27px}.icon-btn{height:30px;padding:0 8px}#hubView{padding:22px 16px}.app-cards-grid{min-width:0}.app-card{padding:20px}.hub-header p{line-height:1.7}}
   </style>
 </head>
 <body>
@@ -474,6 +475,8 @@
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
           立方体 切断シミュレーター
         </button>
+      <button id="tabSolidLab" class="nav-tab-btn" type="button">立体ラボ</button>
+        <button id="tabPositionLab" class="nav-tab-btn" type="button">なる？ならない？</button>
       </nav>
 
       <!-- Right Actions: Theme Toggle & Fullscreen -->
@@ -498,7 +501,7 @@
         <div class="hub-header">
           <span class="badge">GEOMETRY APPS COLLECTION</span>
           <h2>学習する立体アプリを選択してください</h2>
-          <p>面・辺・頂点の規則性を学ぶアプリと、立方体の3点切断シミュレーターを自由に行き来できます</p>
+          <p>数える・切る・選ぶ・比べる。4つのアプリで立体と空間の位置関係を学べます</p>
         </div>
 
         <div class="app-cards-grid">
@@ -565,6 +568,16 @@
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
             </button>
           </article>
+        <article class="app-card card-solid" id="launchSolidLabBtn">
+  <div class="card-top"><div class="card-icon">∠</div><div class="card-meta"><span class="card-badge">辺と面・位置関係・トレーニング</span><h3 class="card-title">立体ラボ</h3></div></div>
+  <p class="card-desc">6種類の角柱を回して、平行・垂直・ねじれの位置にある辺や面を選びます。正解音と不正解音、連続正解数、履歴からの再挑戦で理解を深められます。</p><div class="card-features"><div class="feature-item"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>直方体・台形の四角柱・三角柱・六角柱・直角三角柱</span></div><div class="feature-item"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>正解後は自動で次へ。音のオン・オフに対応</span></div><div class="feature-item"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>最新500問の履歴、間違えた問題の復習、連続正解の記録</span></div></div>
+  <button class="card-btn" type="button">立体ラボを開く →</button>
+</article>
+<article class="app-card card-position" id="launchPositionLabBtn">
+  <div class="card-top"><div class="card-icon">○ ×</div><div class="card-meta"><span class="card-badge">空間の直線と平面・例と反例</span><h3 class="card-title">なる？ならない？</h3></div></div>
+  <p class="card-desc">問5・問7の全8問、24通りの立体図をボタンで切り替えます。条件を満たす例と反例を見比べて、「つねに成り立つ」の意味を確かめます。</p><div class="card-features"><div class="feature-item"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>同じ条件で○になる例と×になる反例を比較</span></div><div class="feature-item"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>ドラッグで回転、正面・真上・立体の視点切り替え</span></div><div class="feature-item"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>答えを隠す機能で、自分で考えてから確認</span></div></div>
+  <button class="card-btn" type="button">なる？ならない？を開く →</button>
+</article>
         </div>
       </section>
 
@@ -577,6 +590,8 @@
       <div id="frameKirikuchiContainer" class="app-frame-container">
         <iframe id="frameKirikuchi" src="apps/kirikuchi/index.html" title="立方体の切断シミュレーター"></iframe>
       </div>
+      <div id="frameSolidLabContainer" class="app-frame-container"><iframe id="frameSolidLab" data-src="apps/solid-lab/index.html" title="立体ラボ" allow="autoplay; fullscreen" allowfullscreen></iframe></div>
+      <div id="framePositionLabContainer" class="app-frame-container"><iframe id="framePositionLab" data-src="apps/position-lab/index.html" title="なる？ならない？ 空間の直線と平面" allow="fullscreen" allowfullscreen></iframe></div>
     </main>
   </div>
 
@@ -597,6 +612,11 @@
     const launchKazoeBtn = document.getElementById('launchKazoeBtn');
     const launchKirikuchiBtn = document.getElementById('launchKirikuchiBtn');
 
+    const addedApps=[{key:'solid',tab:'tabSolidLab',card:'launchSolidLabBtn',frame:'frameSolidLab'},{key:'position',tab:'tabPositionLab',card:'launchPositionLabBtn',frame:'framePositionLab'}];
+    for(const app of addedApps){
+      document.getElementById(app.tab).addEventListener('click',()=>switchView(app.key));
+      document.getElementById(app.card).addEventListener('click',()=>switchView(app.key));
+    }
     // Switch View function
     function switchView(target) {
       currentApp = target;
@@ -611,6 +631,12 @@
       frameKazoeContainer.classList.toggle('active', target === 'kazoe');
       frameKirikuchiContainer.classList.toggle('active', target === 'kirikuchi');
 
+      for(const app of addedApps){
+        const active=target===app.key,frame=document.getElementById(app.frame);
+        document.getElementById(app.tab).classList.toggle('active',active);
+        document.getElementById(app.frame+'Container').classList.toggle('active',active);
+        if(active&&!frame.getAttribute('src'))frame.setAttribute('src',frame.dataset.src);
+      }
       // Sync theme with child iframe if active
       syncThemeToFrames();
     }
