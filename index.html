@@ -477,6 +477,7 @@
         </button>
       <button id="tabSolidLab" class="nav-tab-btn" type="button">立体ラボ</button>
         <button id="tabPositionLab" class="nav-tab-btn" type="button">なる？ならない？</button>
+        <button id="tabSurfacePainter" class="nav-tab-btn" type="button">表面積ラボ</button>
       </nav>
 
       <!-- Right Actions: Theme Toggle & Fullscreen -->
@@ -501,7 +502,7 @@
         <div class="hub-header">
           <span class="badge">GEOMETRY APPS COLLECTION</span>
           <h2>学習する立体アプリを選択してください</h2>
-          <p>数える・切る・選ぶ・比べる。4つのアプリで立体と空間の位置関係を学べます</p>
+          <p>数える・切る・選ぶ・比べる・ぬる。5つのアプリで立体と空間の位置関係を学べます</p>
         </div>
 
         <div class="app-cards-grid">
@@ -578,6 +579,16 @@
   <p class="card-desc">問5・問7の全8問、24通りの立体図をボタンで切り替えます。条件を満たす例と反例を見比べて、「つねに成り立つ」の意味を確かめます。</p><div class="card-features"><div class="feature-item"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>同じ条件で○になる例と×になる反例を比較</span></div><div class="feature-item"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>ドラッグで回転、正面・真上・立体の視点切り替え</span></div><div class="feature-item"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>答えを隠す機能で、自分で考えてから確認</span></div></div>
   <button class="card-btn" type="button">なる？ならない？を開く →</button>
 </article>
+          <article class="app-card card-solid" id="launchSurfacePainterBtn">
+            <div class="card-top"><div class="card-icon">◈</div><div class="card-meta"><span class="card-badge">表面積・色ぬり・展開図</span><h3 class="card-title">表面積ラボ</h3></div></div>
+            <p class="card-desc">12種類の立体を回して、表面積に入る面をクリックでぬります。穴の内側や接合面を見比べ、スライダーで展開して面のつながりを確かめられます。</p>
+            <div class="card-features">
+              <div class="feature-item"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>未着色の面はフレーム表示。選んだ面だけを着色</span></div>
+              <div class="feature-item"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>底面・穴の内側も採点。接合面をぬると誤りを表示</span></div>
+              <div class="feature-item"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg><span>色を保ったまま展開図へ。曲面は長方形や扇形に展開</span></div>
+            </div>
+            <button class="card-btn" type="button">表面積ラボを開く →</button>
+          </article>
         </div>
       </section>
 
@@ -592,6 +603,7 @@
       </div>
       <div id="frameSolidLabContainer" class="app-frame-container"><iframe id="frameSolidLab" data-src="apps/solid-lab/index.html" title="立体ラボ" allow="autoplay; fullscreen" allowfullscreen></iframe></div>
       <div id="framePositionLabContainer" class="app-frame-container"><iframe id="framePositionLab" data-src="apps/position-lab/index.html" title="なる？ならない？ 空間の直線と平面" allow="fullscreen" allowfullscreen></iframe></div>
+      <div id="frameSurfacePainterContainer" class="app-frame-container"><iframe id="frameSurfacePainter" data-src="apps/surface-painter/index.html" title="表面積ラボ" allow="fullscreen" allowfullscreen></iframe></div>
     </main>
   </div>
 
@@ -612,7 +624,7 @@
     const launchKazoeBtn = document.getElementById('launchKazoeBtn');
     const launchKirikuchiBtn = document.getElementById('launchKirikuchiBtn');
 
-    const addedApps=[{key:'solid',tab:'tabSolidLab',card:'launchSolidLabBtn',frame:'frameSolidLab'},{key:'position',tab:'tabPositionLab',card:'launchPositionLabBtn',frame:'framePositionLab'}];
+    const addedApps=[{key:'solid',tab:'tabSolidLab',card:'launchSolidLabBtn',frame:'frameSolidLab'},{key:'position',tab:'tabPositionLab',card:'launchPositionLabBtn',frame:'framePositionLab'},{key:'surface',tab:'tabSurfacePainter',card:'launchSurfacePainterBtn',frame:'frameSurfacePainter'}];
     for(const app of addedApps){
       document.getElementById(app.tab).addEventListener('click',()=>switchView(app.key));
       document.getElementById(app.card).addEventListener('click',()=>switchView(app.key));
