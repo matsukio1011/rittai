@@ -354,8 +354,10 @@
       position: absolute;
       bottom: 14px;
       right: 16px;
-      width: 176px;
-      height: 176px;
+      width: 210px;
+      height: 200px;
+      min-width: 140px;
+      min-height: 130px;
       background: var(--bg-panel);
       border: 1px solid var(--border-color);
       border-radius: 12px;
@@ -363,6 +365,7 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      z-index: 5;
     }
 
     .true-shape-header {
@@ -374,13 +377,98 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      cursor: move;
+      flex-shrink: 0;
+      background: var(--bg-card);
+    }
+
+    .true-shape-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .true-shape-header-right {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+
+    .true-shape-reset-btn {
+      border: 1px solid var(--border-color);
+      background: var(--bg-panel);
+      color: var(--text-secondary);
+      border-radius: 5px;
+      width: 20px;
+      height: 20px;
+      font-size: 0.74rem;
+      line-height: 1;
+      display: inline-grid;
+      place-items: center;
+      cursor: pointer;
+      padding: 0;
+      transition: all 0.15s ease;
+    }
+
+    .true-shape-reset-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
     }
 
     #trueShapeCanvas {
       flex: 1;
       width: 100%;
-      height: 100%;
+      min-width: 0;
+      min-height: 0;
       display: block;
+      cursor: grab;
+    }
+
+    #trueShapeCanvas.dragging {
+      cursor: grabbing;
+    }
+
+    /* Resize Handles for True Shape Card */
+    .ts-resize-handle {
+      position: absolute;
+      z-index: 6;
+    }
+    .ts-resize-n { top: 0; left: 10px; right: 10px; height: 6px; cursor: ns-resize; }
+    .ts-resize-s { bottom: 0; left: 10px; right: 10px; height: 6px; cursor: ns-resize; }
+    .ts-resize-e { right: 0; top: 10px; bottom: 10px; width: 6px; cursor: ew-resize; }
+    .ts-resize-w { left: 0; top: 10px; bottom: 10px; width: 6px; cursor: ew-resize; }
+    .ts-resize-nw { top: 0; left: 0; width: 12px; height: 12px; cursor: nwse-resize; }
+    .ts-resize-ne { top: 0; right: 0; width: 12px; height: 12px; cursor: nesw-resize; }
+    .ts-resize-sw { bottom: 0; left: 0; width: 12px; height: 12px; cursor: nesw-resize; }
+    .ts-resize-se { bottom: 0; right: 0; width: 14px; height: 14px; cursor: nwse-resize; }
+    .ts-resize-se::after {
+      content: "";
+      position: absolute;
+      right: 3px;
+      bottom: 3px;
+      width: 7px;
+      height: 7px;
+      border-right: 2px solid var(--text-secondary);
+      border-bottom: 2px solid var(--text-secondary);
+      opacity: 0.45;
+      pointer-events: none;
+    }
+    .ts-resize-nw::after {
+      content: "";
+      position: absolute;
+      left: 3px;
+      top: 3px;
+      width: 7px;
+      height: 7px;
+      border-left: 2px solid var(--text-secondary);
+      border-top: 2px solid var(--text-secondary);
+      opacity: 0.45;
+      pointer-events: none;
     }
 
     /* Right Control Panel */
@@ -755,7 +843,7 @@
             </button>
           </div>
           <div id="modeHintText" class="hint-pill">
-            💡 点P・Q・Rをドラッグで移動 ／ 辺（立体・切り口）をクリックで延長線の表示・非表示 ／ 背景ドラッグで3D回転
+            💡 点P・Q・Rをドラッグで移動 ／ 辺（立体・切り口）をクリックで延長線の表示・非表示 ／ 背景ドラッグで3D回転・ホイールで拡大縮小
           </div>
         </div>
 
@@ -790,12 +878,30 @@
         </div>
 
         <!-- Bottom-Right True 2D Cross-Section Preview -->
-        <div class="true-shape-card">
-          <div class="true-shape-header">
-            <span>切り口の実形（正面図）</span>
-            <span id="trueShapeVerticesCount">3角形</span>
+        <div id="trueShapeCard" class="true-shape-card">
+          <div id="trueShapeHeader" class="true-shape-header" title="ドラッグでパネルを移動">
+            <span class="true-shape-title">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="opacity:0.55; flex-shrink:0;">
+                <circle cx="9" cy="5" r="2"/><circle cx="15" cy="5" r="2"/>
+                <circle cx="9" cy="12" r="2"/><circle cx="15" cy="12" r="2"/>
+                <circle cx="9" cy="19" r="2"/><circle cx="15" cy="19" r="2"/>
+              </svg>
+              <span>切り口の実形（正面図）</span>
+            </span>
+            <span class="true-shape-header-right">
+              <span id="trueShapeVerticesCount">3角形</span>
+              <button id="trueShapeResetBtn" class="true-shape-reset-btn" type="button" title="表示位置・拡大率をリセット">↺</button>
+            </span>
           </div>
-          <canvas id="trueShapeCanvas" width="176" height="146"></canvas>
+          <canvas id="trueShapeCanvas" title="ドラッグで移動 ／ ホイールで拡大縮小 ／ 四隅・枠ドラッグでサイズ変更"></canvas>
+          <div class="ts-resize-handle ts-resize-n" data-resize="n"></div>
+          <div class="ts-resize-handle ts-resize-s" data-resize="s"></div>
+          <div class="ts-resize-handle ts-resize-e" data-resize="e"></div>
+          <div class="ts-resize-handle ts-resize-w" data-resize="w"></div>
+          <div class="ts-resize-handle ts-resize-nw" data-resize="nw" title="ドラッグでサイズ変更"></div>
+          <div class="ts-resize-handle ts-resize-ne" data-resize="ne" title="ドラッグでサイズ変更"></div>
+          <div class="ts-resize-handle ts-resize-sw" data-resize="sw" title="ドラッグでサイズ変更"></div>
+          <div class="ts-resize-handle ts-resize-se" data-resize="se" title="ドラッグでサイズ変更"></div>
         </div>
       </section>
 
@@ -1191,6 +1297,12 @@
       camera: {
         yaw: -0.58,
         pitch: 0.44,
+        zoom: 1.0,
+      },
+      trueShape: {
+        zoom: 1.0,
+        panX: 0,
+        panY: 0,
       },
       mitorizu: {
         vpIndex: 0,    // 0: 右上奥 (標準), 1: 左上奥
@@ -1416,9 +1528,12 @@
         { x: 0, y: 0, z: 0 }
       );
 
-      let ref = Math.abs(normal.y) < 0.9 ? { x: 0, y: 1, z: 0 } : { x: 1, y: 0, z: 0 };
-      const uAxis = vecNorm(vecCross(ref, normal));
-      const vAxis = vecNorm(vecCross(normal, uAxis));
+      // 正面（手前・上）側から見た向きに法線を揃えて、実形図の左右・上下が3D表示と自然に対応するようにする
+      const viewRef = { x: 0.32, y: 0.48, z: 0.82 };
+      const planeNormal = vecDot(normal, viewRef) < 0 ? vecScale(normal, -1) : normal;
+      let ref = Math.abs(planeNormal.y) < 0.92 ? { x: 0, y: 1, z: 0 } : { x: 0, y: 0, z: -1 };
+      const uAxis = vecNorm(vecCross(ref, planeNormal));
+      const vAxis = vecNorm(vecCross(planeNormal, uAxis));
 
       const sortedPolygon = uniquePts
         .map(pt => {
@@ -1791,7 +1906,7 @@
     function projectPoint(pt3d, width, height) {
       const cx = width * 0.5;
       const cy = height * 0.5;
-      const baseSize = Math.min(width, height) * 0.43;
+      const baseSize = Math.min(width, height) * 0.43 * (state.camera.zoom || 1.0);
 
       const rawX = pt3d.x - 0.5;
       const rawY = pt3d.y - 0.5;
@@ -2416,11 +2531,14 @@
     // 右下ミニキャンバスに切り口の2D実形を描画
     function renderTrueShape(section) {
       const dpr = window.devicePixelRatio || 1;
-      const W = 176;
-      const H = 146;
-      if (trueShapeCanvas.width !== W * dpr || trueShapeCanvas.height !== H * dpr) {
-        trueShapeCanvas.width = W * dpr;
-        trueShapeCanvas.height = H * dpr;
+      const rect = trueShapeCanvas.getBoundingClientRect();
+      const W = Math.max(rect.width, 60);
+      const H = Math.max(rect.height, 60);
+      const targetW = Math.round(W * dpr);
+      const targetH = Math.round(H * dpr);
+      if (trueShapeCanvas.width !== targetW || trueShapeCanvas.height !== targetH) {
+        trueShapeCanvas.width = targetW;
+        trueShapeCanvas.height = targetH;
       }
 
       tsCtx.save();
@@ -2431,6 +2549,11 @@
       const strokeColor = style.getPropertyValue('--section-stroke').trim();
       const fillColor = style.getPropertyValue('--section-fill').trim();
       const subTextColor = style.getPropertyValue('--text-secondary').trim();
+      const pointColors = {
+        p: style.getPropertyValue('--point-p').trim(),
+        q: style.getPropertyValue('--point-q').trim(),
+        r: style.getPropertyValue('--point-r').trim(),
+      };
 
       if (state.appMode === 'draw' && !state.drawState.showAnswer) {
         const match = checkAnswerMatch(section);
@@ -2462,14 +2585,18 @@
 
       const spanU = Math.max(maxU - minU, 0.2);
       const spanV = Math.max(maxV - minV, 0.2);
-      const scale = Math.min((W - 38) / spanU, (H - 34) / spanV);
+      const pad = 42;
+      const baseScale = Math.min(Math.max(W - pad, 20) / spanU, Math.max(H - pad, 20) / spanV);
+      const scale = baseScale * (state.trueShape.zoom || 1.0);
 
       const midU = (minU + maxU) / 2;
       const midV = (minV + maxV) / 2;
+      const panX = state.trueShape.panX || 0;
+      const panY = state.trueShape.panY || 0;
 
       const mapPt = p => ({
-        x: W / 2 + (p.u - midU) * scale,
-        y: H / 2 - (p.v - midV) * scale,
+        x: W / 2 + panX + (p.u - midU) * scale,
+        y: H / 2 + panY - (p.v - midV) * scale,
       });
 
       const mapped = pts2d.map(mapPt);
@@ -2491,6 +2618,31 @@
         tsCtx.arc(p.x, p.y, 3.2, 0, Math.PI * 2);
         tsCtx.fillStyle = strokeColor;
         tsCtx.fill();
+      }
+
+      // 切り口の実形上に点 P, Q, R を描画
+      if (section.userPoints && section.centroid && section.uAxis && section.vAxis) {
+        section.userPoints.forEach((pt) => {
+          const rel = vecSub(pt, section.centroid);
+          const u = vecDot(rel, section.uAxis);
+          const v = vecDot(rel, section.vAxis);
+          const p2d = mapPt({ u, v });
+          const color = pointColors[pt.colorKey] || strokeColor;
+
+          tsCtx.beginPath();
+          tsCtx.arc(p2d.x, p2d.y, 7.5, 0, Math.PI * 2);
+          tsCtx.fillStyle = color;
+          tsCtx.fill();
+          tsCtx.lineWidth = 1.8;
+          tsCtx.strokeStyle = '#ffffff';
+          tsCtx.stroke();
+
+          tsCtx.font = '700 9.5px "Segoe UI", sans-serif';
+          tsCtx.fillStyle = '#ffffff';
+          tsCtx.textAlign = 'center';
+          tsCtx.textBaseline = 'middle';
+          tsCtx.fillText(pt.name, p2d.x, p2d.y + 0.5);
+        });
       }
 
       tsCtx.restore();
@@ -3082,6 +3234,16 @@
     mainCanvas.addEventListener('pointerup', endDrag);
     mainCanvas.addEventListener('pointercancel', endDrag);
 
+    // マウスホイールで立体を拡大・縮小
+    mainCanvas.addEventListener('wheel', (evt) => {
+      evt.preventDefault();
+      const normalizedDelta = evt.deltaMode === 1 ? evt.deltaY * 33 : evt.deltaY;
+      const clampedDelta = Math.max(-150, Math.min(150, normalizedDelta));
+      const zoomFactor = Math.exp(-clampedDelta * 0.001);
+      state.camera.zoom = Math.max(0.35, Math.min(3.0, (state.camera.zoom || 1.0) * zoomFactor));
+      render();
+    }, { passive: false });
+
     // 延長線一括クリアボタン（キャンバス左下）
     clearExtensionsBtn.addEventListener('click', () => {
       state.extendedCubeEdges.clear();
@@ -3121,11 +3283,11 @@
 
     function updateModeHintText() {
       if (state.appMode === 'draw') {
-        modeHintText.textContent = '✏️ 切り口を書くモード：①3点(P・Q・R)を設定 → ②2点をクリックして線分を書く → ③辺や線分をクリックで延長線 → ④交点も選択可能';
+        modeHintText.textContent = '✏️ 切り口を書くモード：①3点(P・Q・R)を設定 → ②2点をクリックして線分を書く → ③辺や線分をクリックで延長線 → ④交点も選択可能 ／ ホイールで拡大縮小';
       } else if (state.viewMode === '3d') {
-        modeHintText.textContent = '💡 点P・Q・Rをドラッグで移動 ／ 辺（立方体・切り口）をクリックで延長線の表示・非表示 ／ 背景ドラッグで3D回転';
+        modeHintText.textContent = '💡 点P・Q・Rをドラッグで移動 ／ 辺（立体・切り口）をクリックで延長線の表示・非表示 ／ 背景ドラッグで3D回転・ホイールで拡大縮小';
       } else {
-        modeHintText.textContent = '💡 見取り図モード ／ 上部のボタンで見取り図の視点・向きを切り替え ／ 辺をクリックで延長線の表示・非表示';
+        modeHintText.textContent = '💡 見取り図モード ／ 上部のボタンで見取り図の視点・向きを切り替え ／ 辺をクリックで延長線の表示・非表示 ／ ホイールで拡大縮小';
       }
     }
 
@@ -3217,13 +3379,189 @@
     modeMitorizuBtn.addEventListener('click', () => setViewMode('mitorizu'));
 
     // 視点リセットボタン
+    const trueShapeCard = document.getElementById('trueShapeCard');
+    const trueShapeHeader = document.getElementById('trueShapeHeader');
+    const trueShapeResetBtn = document.getElementById('trueShapeResetBtn');
+
+    function resetTrueShapeView(resetCardBox = false) {
+      state.trueShape.zoom = 1.0;
+      state.trueShape.panX = 0;
+      state.trueShape.panY = 0;
+      if (resetCardBox && trueShapeCard) {
+        trueShapeCard.style.left = '';
+        trueShapeCard.style.top = '';
+        trueShapeCard.style.right = '16px';
+        trueShapeCard.style.bottom = '14px';
+        trueShapeCard.style.width = '210px';
+        trueShapeCard.style.height = '200px';
+      }
+      render();
+    }
+
+    trueShapeResetBtn.addEventListener('click', (evt) => {
+      evt.stopPropagation();
+      resetTrueShapeView(false);
+    });
+
+    trueShapeCanvas.addEventListener('dblclick', () => {
+      resetTrueShapeView(false);
+    });
+
+    // 切り口の実形カード：キャンバス内ドラッグで図形移動＆ホイールで拡大縮小
+    let tsPanDrag = null;
+    trueShapeCanvas.addEventListener('pointerdown', (evt) => {
+      if (evt.button !== 0) return;
+      evt.stopPropagation();
+      tsPanDrag = { startX: evt.clientX, startY: evt.clientY, origPanX: state.trueShape.panX, origPanY: state.trueShape.panY };
+      trueShapeCanvas.classList.add('dragging');
+      trueShapeCanvas.setPointerCapture(evt.pointerId);
+    });
+
+    trueShapeCanvas.addEventListener('pointermove', (evt) => {
+      if (!tsPanDrag) return;
+      evt.stopPropagation();
+      state.trueShape.panX = tsPanDrag.origPanX + (evt.clientX - tsPanDrag.startX);
+      state.trueShape.panY = tsPanDrag.origPanY + (evt.clientY - tsPanDrag.startY);
+      renderTrueShape(computeCrossSection());
+    });
+
+    function endTsPanDrag(evt) {
+      if (!tsPanDrag) return;
+      tsPanDrag = null;
+      trueShapeCanvas.classList.remove('dragging');
+      try { trueShapeCanvas.releasePointerCapture(evt.pointerId); } catch (_) {}
+    }
+    trueShapeCanvas.addEventListener('pointerup', endTsPanDrag);
+    trueShapeCanvas.addEventListener('pointercancel', endTsPanDrag);
+
+    trueShapeCard.addEventListener('wheel', (evt) => {
+      evt.preventDefault();
+      evt.stopPropagation();
+      const rect = trueShapeCanvas.getBoundingClientRect();
+      const mx = evt.clientX - rect.left;
+      const my = evt.clientY - rect.top;
+      const normalizedDelta = evt.deltaMode === 1 ? evt.deltaY * 33 : evt.deltaY;
+      const clampedDelta = Math.max(-150, Math.min(150, normalizedDelta));
+      const zoomFactor = Math.exp(-clampedDelta * 0.0012);
+
+      const prevZoom = state.trueShape.zoom || 1.0;
+      const nextZoom = Math.max(0.3, Math.min(4.5, prevZoom * zoomFactor));
+      const ratio = nextZoom / prevZoom;
+
+      const offsetX = mx - rect.width / 2;
+      const offsetY = my - rect.height / 2;
+      state.trueShape.panX = offsetX - (offsetX - state.trueShape.panX) * ratio;
+      state.trueShape.panY = offsetY - (offsetY - state.trueShape.panY) * ratio;
+      state.trueShape.zoom = nextZoom;
+      renderTrueShape(computeCrossSection());
+    }, { passive: false });
+
+    // 切り口の実形カード：ヘッダードラッグでパネル移動＆四隅・辺ドラッグでパネルサイズ拡大縮小
+    let tsCardAction = null; // { mode: 'move' | 'resize', dir, startX, startY, startLeft, startTop, startW, startH, parentW, parentH }
+
+    function initCardAction(evt, mode, dir = '') {
+      if (evt.button !== 0) return;
+      evt.stopPropagation();
+      const parentRect = trueShapeCard.parentElement.getBoundingClientRect();
+      const cardRect = trueShapeCard.getBoundingClientRect();
+      const startLeft = cardRect.left - parentRect.left;
+      const startTop = cardRect.top - parentRect.top;
+
+      trueShapeCard.style.left = `${startLeft}px`;
+      trueShapeCard.style.top = `${startTop}px`;
+      trueShapeCard.style.right = 'auto';
+      trueShapeCard.style.bottom = 'auto';
+
+      tsCardAction = {
+        mode,
+        dir,
+        pointerId: evt.pointerId,
+        targetEl: evt.currentTarget,
+        startX: evt.clientX,
+        startY: evt.clientY,
+        startLeft,
+        startTop,
+        startW: cardRect.width,
+        startH: cardRect.height,
+        parentW: parentRect.width,
+        parentH: parentRect.height,
+      };
+      evt.currentTarget.setPointerCapture(evt.pointerId);
+    }
+
+    trueShapeHeader.addEventListener('pointerdown', (evt) => {
+      if (evt.target.closest('button')) return;
+      initCardAction(evt, 'move');
+    });
+
+    trueShapeCard.querySelectorAll('.ts-resize-handle').forEach(handle => {
+      handle.addEventListener('pointerdown', (evt) => {
+        initCardAction(evt, 'resize', handle.getAttribute('data-resize') || 'se');
+      });
+    });
+
+    window.addEventListener('pointermove', (evt) => {
+      if (!tsCardAction) return;
+      const dx = evt.clientX - tsCardAction.startX;
+      const dy = evt.clientY - tsCardAction.startY;
+
+      if (tsCardAction.mode === 'move') {
+        const newLeft = Math.max(6, Math.min(tsCardAction.parentW - tsCardAction.startW - 6, tsCardAction.startLeft + dx));
+        const newTop = Math.max(6, Math.min(tsCardAction.parentH - tsCardAction.startH - 6, tsCardAction.startTop + dy));
+        trueShapeCard.style.left = `${newLeft}px`;
+        trueShapeCard.style.top = `${newTop}px`;
+      } else if (tsCardAction.mode === 'resize') {
+        const minW = 140;
+        const minH = 130;
+        let newLeft = tsCardAction.startLeft;
+        let newTop = tsCardAction.startTop;
+        let newW = tsCardAction.startW;
+        let newH = tsCardAction.startH;
+        const dir = tsCardAction.dir;
+
+        if (dir.includes('e')) {
+          newW = Math.max(minW, Math.min(tsCardAction.parentW - newLeft - 6, tsCardAction.startW + dx));
+        }
+        if (dir.includes('s')) {
+          newH = Math.max(minH, Math.min(tsCardAction.parentH - newTop - 6, tsCardAction.startH + dy));
+        }
+        if (dir.includes('w')) {
+          const maxDeltaLeft = tsCardAction.startW - minW;
+          const clampedDx = Math.max(-tsCardAction.startLeft + 6, Math.min(maxDeltaLeft, dx));
+          newLeft = tsCardAction.startLeft + clampedDx;
+          newW = tsCardAction.startW - clampedDx;
+        }
+        if (dir.includes('n')) {
+          const maxDeltaTop = tsCardAction.startH - minH;
+          const clampedDy = Math.max(-tsCardAction.startTop + 6, Math.min(maxDeltaTop, dy));
+          newTop = tsCardAction.startTop + clampedDy;
+          newH = tsCardAction.startH - clampedDy;
+        }
+
+        trueShapeCard.style.left = `${newLeft}px`;
+        trueShapeCard.style.top = `${newTop}px`;
+        trueShapeCard.style.width = `${newW}px`;
+        trueShapeCard.style.height = `${newH}px`;
+        renderTrueShape(computeCrossSection());
+      }
+    });
+
+    function endTsCardAction() {
+      if (!tsCardAction) return;
+      try { tsCardAction.targetEl.releasePointerCapture(tsCardAction.pointerId); } catch (_) {}
+      tsCardAction = null;
+    }
+    window.addEventListener('pointerup', endTsCardAction);
+    window.addEventListener('pointercancel', endTsCardAction);
+
     document.getElementById('resetCameraBtn').addEventListener('click', () => {
       state.camera.yaw = -0.58;
       state.camera.pitch = 0.44;
+      state.camera.zoom = 1.0;
       state.mitorizu.vpIndex = 0;
       state.mitorizu.rotQuarter = 0;
       syncMitorizuViewButtons();
-      render();
+      resetTrueShapeView(true);
     });
 
     // ダークモード切り替え
